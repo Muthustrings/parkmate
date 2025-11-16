@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parkmate/utils/color_page.dart';
-import 'package:parkmate/login_page.dart'; // Import for LoginPage
+import 'package:parkmate/screens/login_page.dart'; // Import for LoginPage
 import 'dart:async'; // Import for Timer
 
 void main() {

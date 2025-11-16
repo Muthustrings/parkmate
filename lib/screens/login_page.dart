@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:parkmate/screens/signup_page.dart';
+import 'package:parkmate/screens/home_page.dart'; // Import the new home page
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -8,9 +10,9 @@ class LoginPage extends StatelessWidget {
     try {
       GoogleSignIn googleSignIn = GoogleSignIn();
       await googleSignIn.signIn();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Signed in with Google')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Signed in with Google')));
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error signing in with Google: $error')),
@@ -39,10 +41,7 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 10),
               const Text(
                 'Login to continue',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 18),
               ),
               const SizedBox(height: 40),
               Container(
@@ -55,7 +54,10 @@ class LoginPage extends StatelessWidget {
                     prefixIcon: Icon(Icons.mail_outline, color: Colors.grey),
                     hintText: 'Email or Phone',
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 15.0,
+                      horizontal: 10.0,
+                    ),
                   ),
                 ),
               ),
@@ -71,7 +73,10 @@ class LoginPage extends StatelessWidget {
                     prefixIcon: Icon(Icons.lock_outline, color: Colors.grey),
                     hintText: 'Password',
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 15.0,
+                      horizontal: 10.0,
+                    ),
                   ),
                 ),
               ),
@@ -80,7 +85,9 @@ class LoginPage extends StatelessWidget {
                 child: TextButton(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Forgot Password button pressed')),
+                      const SnackBar(
+                        content: Text('Forgot Password button pressed'),
+                      ),
                     );
                   },
                   child: const Text(
@@ -92,8 +99,9 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Login button pressed')),
+                  Navigator.pushReplacement( // Use pushReplacement to prevent going back to login
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomePage()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -104,10 +112,7 @@ class LoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text(
-                  'Login',
-                  style: TextStyle(fontSize: 18),
-                ),
+                child: const Text('Login', style: TextStyle(fontSize: 18)),
               ),
               const SizedBox(height: 25),
               const Row(
@@ -115,10 +120,7 @@ class LoginPage extends StatelessWidget {
                   Expanded(child: Divider(color: Colors.white)),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text(
-                      'OR',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    child: Text('OR', style: TextStyle(color: Colors.white)),
                   ),
                   Expanded(child: Divider(color: Colors.white)),
                 ],
@@ -159,8 +161,9 @@ class LoginPage extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sign up button pressed')),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SignUpPage()),
                       );
                     },
                     child: const Text(
