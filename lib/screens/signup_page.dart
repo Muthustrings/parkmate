@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:parkmate/utils/color_page.dart';
+import 'package:parkmate/models/user_model.dart';
+import 'package:parkmate/services/database_helper.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -9,10 +10,93 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _nameController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSignUp() async {
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+    final name = _nameController.text.trim();
+
+    if (phone.isEmpty || password.isEmpty || confirmPassword.isEmpty || name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    // Basic phone validation (can be improved)
+    if (!RegExp(r'^[0-9]+$').hasMatch(phone) || phone.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid phone number')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final exists = await DatabaseHelper.instance.checkUserExists(phone);
+      if (exists) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User with this phone number already exists')),
+          );
+        }
+      } else {
+        final user = User(phone: phone, password: password, name: name);
+        await DatabaseHelper.instance.createUser(user);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account created successfully! Please login.')),
+          );
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.colorScheme.background,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -20,28 +104,61 @@ class _SignUpPageState extends State<SignUpPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 80),
-              const Text(
+              Text(
                 'Create Account',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: theme.colorScheme.onBackground,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Join ParkMate to manage parking',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 40),
-              _buildTextField('Email or phone number'),
+              _buildTextField(
+                context,
+                'Phone Number',
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+              ),
               const SizedBox(height: 20),
-              _buildTextField('Create password', obscureText: true),
+              _buildTextField(
+                context,
+                'Create password',
+                obscureText: _obscurePassword,
+                controller: _passwordController,
+                isPassword: true,
+                onVisibilityToggle: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
+              ),
               const SizedBox(height: 20),
-              _buildTextField('Full name'),
+              _buildTextField(
+                context,
+                'Confirm password',
+                obscureText: _obscureConfirmPassword,
+                controller: _confirmPasswordController,
+                isPassword: true,
+                onVisibilityToggle: () {
+                  setState(() {
+                    _obscureConfirmPassword = !_obscureConfirmPassword;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              _buildTextField(
+                context,
+                'Full name',
+                controller: _nameController,
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -50,11 +167,11 @@ class _SignUpPageState extends State<SignUpPage> {
                     onChanged: (bool? value) {
                       // TODO: Implement state management for checkbox
                     },
-                    activeColor: AppColors.primaryColor,
+                    activeColor: theme.colorScheme.primary,
                   ),
-                  const Text(
+                  Text(
                     'I agree to ParkMate ',
-                    style: TextStyle(fontSize: 14),
+                    style: TextStyle(fontSize: 14, color: theme.colorScheme.onBackground),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -64,7 +181,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       'Terms & Privacy',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.primaryColor,
+                        color: theme.colorScheme.primary,
                         decoration: TextDecoration.underline,
                       ),
                     ),
@@ -76,26 +193,26 @@ class _SignUpPageState extends State<SignUpPage> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Implement create account logic
-                  },
+                  onPressed: _isLoading ? null : _handleSignUp,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
+                    backgroundColor: theme.colorScheme.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Create Account',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
+                  child: _isLoading
+                      ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
+                      : Text(
+                          'Create Account',
+                          style: TextStyle(fontSize: 18, color: theme.colorScheme.onPrimary),
+                        ),
                 ),
               ),
               const SizedBox(height: 20),
-              const Center(
+              Center(
                 child: Text(
                   'OR',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurfaceVariant),
                 ),
               ),
               const SizedBox(height: 20),
@@ -107,7 +224,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     // TODO: Implement sign in with Google logic
                   },
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.grey),
+                    side: BorderSide(color: theme.colorScheme.outline),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -116,13 +233,14 @@ class _SignUpPageState extends State<SignUpPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset(
-                        'assets/googleicon.png', // Ensure this asset exists
+                        'assets/googleicon.png',
                         height: 24,
+                        color: theme.colorScheme.onBackground,
                       ),
                       const SizedBox(width: 10),
-                      const Text(
+                      Text(
                         'Sign in with Google',
-                        style: TextStyle(fontSize: 18, color: Colors.black),
+                        style: TextStyle(fontSize: 18, color: theme.colorScheme.onBackground),
                       ),
                     ],
                   ),
@@ -132,19 +250,19 @@ class _SignUpPageState extends State<SignUpPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Already have an account? ',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: theme.colorScheme.onBackground),
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pop(context); // Go back to login page
+                      Navigator.pop(context);
                     },
                     child: Text(
                       'Log in',
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.primaryColor,
+                        color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -158,19 +276,40 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildTextField(String hintText, {bool obscureText = false}) {
+  Widget _buildTextField(
+    BuildContext context,
+    String hintText, {
+    bool obscureText = false,
+    TextEditingController? controller,
+    TextInputType? keyboardType,
+    bool isPassword = false,
+    VoidCallback? onVisibilityToggle,
+  }) {
+    final theme = Theme.of(context);
     return TextField(
+      controller: controller,
       obscureText: obscureText,
+      keyboardType: keyboardType,
+      style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         filled: true,
-        fillColor: Colors.grey[200],
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        fillColor: theme.colorScheme.surfaceVariant,
+        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                onPressed: onVisibilityToggle,
+              )
+            : null,
       ),
     );
   }

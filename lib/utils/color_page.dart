@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static Color primaryColor = const Color(0xFF1A73E8); // A common blue for app theme
-  static Color secondaryColor = const Color(0xFFFF9800); // Orange for icons
+  static const Color primaryColor = Color(0xFF1A439B); // A consistent primary color
+  static const Color accentColor = Color(0xFFFF9800); // A consistent accent color
+
+  // Light theme specific colors
+  static const Color lightBackgroundColor = Colors.white;
+  static const Color lightTextColor = Colors.black;
+  static const Color lightAppBarColor = primaryColor;
+
+  // Dark theme specific colors
+  static const Color darkBackgroundColor = Color(0xFF121212); // A dark grey for background
+  static const Color darkTextColor = Colors.white;
+  static const Color darkAppBarColor = Color(0xFF212121); // A slightly lighter dark grey for app bar
 
   // This class is not meant to be instantiated, so a private constructor is appropriate.
   AppColors._();

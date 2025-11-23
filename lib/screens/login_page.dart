@@ -1,183 +1,291 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:parkmate/screens/signup_page.dart';
-import 'package:parkmate/screens/home_page.dart'; // Import the new home page
+import 'package:parkmate/screens/home_page.dart';
+import 'package:parkmate/services/database_helper.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
-  Future<void> _handleSignIn(BuildContext context) async {
-    try {
-      GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signIn();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Signed in with Google')));
-    } catch (error) {
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (phone.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error signing in with Google: $error')),
+        const SnackBar(content: Text('Please fill in all fields')),
       );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = await DatabaseHelper.instance.getUser(phone, password);
+      if (user != null) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid phone number or password')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    try {
+      GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signIn();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Signed in with Google',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+          ),
+        );
+        // Navigate to home page after successful google sign in
+         Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error signing in with Google: $error',
+              style: TextStyle(color: Theme.of(context).colorScheme.onError),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF1A439B),
+      backgroundColor: theme.colorScheme.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text(
-                'Welcome Back',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Login to continue',
-                style: TextStyle(color: Colors.white, fontSize: 18),
-              ),
-              const SizedBox(height: 40),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const TextField(
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.mail_outline, color: Colors.grey),
-                    hintText: 'Email or Phone',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 15.0,
-                      horizontal: 10.0,
-                    ),
+          child: SingleChildScrollView( // Added SingleChildScrollView to prevent overflow
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const SizedBox(height: 40), // Add some top spacing
+                Text(
+                  'Welcome Back',
+                  style: TextStyle(
+                    color: theme.colorScheme.onBackground,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-              const SizedBox(height: 15),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 10),
+                Text(
+                  'Login to continue',
+                  style: TextStyle(color: theme.colorScheme.onBackground, fontSize: 18),
                 ),
-                child: const TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.lock_outline, color: Colors.grey),
-                    hintText: 'Password',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 15.0,
-                      horizontal: 10.0,
-                    ),
+                const SizedBox(height: 40),
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Forgot Password button pressed'),
+                  child: TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.phone, color: theme.colorScheme.onSurfaceVariant),
+                      hintText: 'Phone Number',
+                      hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 15.0,
+                        horizontal: 10.0,
                       ),
-                    );
-                  },
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement( // Use pushReplacement to prevent going back to login
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
+                const SizedBox(height: 15),
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                ),
-                child: const Text('Login', style: TextStyle(fontSize: 18)),
-              ),
-              const SizedBox(height: 25),
-              const Row(
-                children: <Widget>[
-                  Expanded(child: Divider(color: Colors.white)),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text('OR', style: TextStyle(color: Colors.white)),
+                  child: TextField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.lock_outline, color: theme.colorScheme.onSurfaceVariant),
+                      hintText: 'Password',
+                      hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 15.0,
+                        horizontal: 10.0,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ),
                   ),
-                  Expanded(child: Divider(color: Colors.white)),
-                ],
-              ),
-              const SizedBox(height: 25),
-              ElevatedButton(
-                onPressed: () => _handleSignIn(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Forgot Password button pressed',
+                            style: TextStyle(color: theme.colorScheme.onSurface),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Forgot Password?',
+                      style: TextStyle(color: theme.colorScheme.onBackground),
+                    ),
                   ),
                 ),
-                child: Row(
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
+                      : Text('Login', style: TextStyle(fontSize: 18, color: theme.colorScheme.onPrimary)),
+                ),
+                const SizedBox(height: 25),
+                Row(
+                  children: <Widget>[
+                    Expanded(child: Divider(color: theme.colorScheme.onBackground)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Text('OR', style: TextStyle(color: theme.colorScheme.onBackground)),
+                    ),
+                    Expanded(child: Divider(color: theme.colorScheme.onBackground)),
+                  ],
+                ),
+                const SizedBox(height: 25),
+                ElevatedButton(
+                  onPressed: _handleGoogleSignIn,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Image.asset(
+                        'assets/googleicon.png',
+                        height: 24.0,
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Sign in with Google',
+                        style: TextStyle(fontSize: 18, color: theme.colorScheme.onPrimary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Image.asset(
-                      'assets/googleicon.png', // Make sure you have this asset
-                      height: 24.0,
+                    Text(
+                      'New here?',
+                      style: TextStyle(color: theme.colorScheme.onBackground, fontSize: 16),
                     ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Sign in with Google',
-                      style: TextStyle(fontSize: 18),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SignUpPage()),
+                        );
+                      },
+                      child: Text(
+                        'Sign up',
+                        style: TextStyle(
+                          color: theme.colorScheme.onBackground,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 40),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text(
-                    'New here?',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SignUpPage()),
-                      );
-                    },
-                    child: const Text(
-                      'Sign up',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

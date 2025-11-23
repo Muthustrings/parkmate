@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parkmate/utils/color_page.dart';
+// Removed unused import: import 'package:parkmate/utils/color_page.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -13,18 +13,20 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
+        backgroundColor: theme.colorScheme.surface,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
+        title: Text(
           'History',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: theme.colorScheme.onSurface),
         ),
       ),
       body: Column(
@@ -36,17 +38,19 @@ class _HistoryPageState extends State<HistoryPage> {
               children: [
                 Expanded(
                   child: _buildInfoCard(
+                    context: context, // Pass context
                     title: "Today's Revenue",
                     value: "₹2,430",
-                    color: AppColors.primaryColor,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildInfoCard(
+                    context: context, // Pass context
                     title: "Total Tickets",
                     value: "78",
-                    color: AppColors.primaryColor,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
               ],
@@ -58,9 +62,9 @@ class _HistoryPageState extends State<HistoryPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildPeriodButton('Today'),
-                _buildPeriodButton('Week'),
-                _buildPeriodButton('Month'),
+                _buildPeriodButton(context, 'Today'), // Pass context
+                _buildPeriodButton(context, 'Week'), // Pass context
+                _buildPeriodButton(context, 'Month'), // Pass context
               ],
             ),
           ),
@@ -68,13 +72,14 @@ class _HistoryPageState extends State<HistoryPage> {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16.0),
-              children: const [
+              children: [
                 HistoryListItem(
                   vehicleNumber: 'KA09MG3015',
                   ticketId: 'PM-2025-00072',
                   checkInTime: '10:45 AM',
                   checkOutTime: '12:50 PM',
                   amount: '₹80',
+                  context: context, // Pass context
                 ),
                 HistoryListItem(
                   vehicleNumber: 'TN34F2196',
@@ -82,6 +87,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   checkInTime: '12:20 PM',
                   checkOutTime: '12:00 PM',
                   amount: '₹96',
+                  context: context, // Pass context
                 ),
                 HistoryListItem(
                   vehicleNumber: 'KL52R8064',
@@ -89,6 +95,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   checkInTime: '11:00 AM',
                   checkOutTime: '11:00 PM',
                   amount: '₹100',
+                  context: context, // Pass context
                 ),
                 HistoryListItem(
                   vehicleNumber: 'KA04HS5569',
@@ -96,6 +103,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   checkInTime: '10:10 AM',
                   checkOutTime: '10:00 PM',
                   amount: '₹80',
+                  context: context, // Pass context
                 ),
                 // Add more HistoryListItem widgets as needed
               ],
@@ -106,12 +114,14 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 
-  Widget _buildInfoCard({required String title, required String value, required Color color}) {
+  Widget _buildInfoCard({required BuildContext context, required String title, required String value, required Color color}) {
+    final theme = Theme.of(context);
     return Card(
       elevation: 4.0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.0),
       ),
+      color: theme.colorScheme.surface, // Use theme's surface color
       child: Container(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -119,9 +129,9 @@ class _HistoryPageState extends State<HistoryPage> {
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16.0,
-                color: Colors.grey,
+                color: theme.colorScheme.onSurfaceVariant, // Use theme's onSurfaceVariant color
               ),
             ),
             const SizedBox(height: 8.0),
@@ -139,7 +149,8 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 
-  Widget _buildPeriodButton(String period) {
+  Widget _buildPeriodButton(BuildContext context, String period) {
+    final theme = Theme.of(context);
     final isSelected = _selectedPeriod == period;
     return GestureDetector(
       onTap: () {
@@ -154,7 +165,7 @@ class _HistoryPageState extends State<HistoryPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? AppColors.primaryColor : Colors.grey,
+              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant, // Use theme colors
             ),
           ),
           if (isSelected)
@@ -162,7 +173,7 @@ class _HistoryPageState extends State<HistoryPage> {
               margin: const EdgeInsets.only(top: 4),
               height: 3,
               width: 40,
-              color: AppColors.primaryColor,
+              color: theme.colorScheme.primary, // Use theme's primary color
             ),
         ],
       ),
@@ -176,6 +187,7 @@ class HistoryListItem extends StatelessWidget {
   final String checkInTime;
   final String checkOutTime;
   final String amount;
+  final BuildContext context; // Add context to constructor
 
   const HistoryListItem({
     super.key,
@@ -184,16 +196,19 @@ class HistoryListItem extends StatelessWidget {
     required this.checkInTime,
     required this.checkOutTime,
     required this.amount,
+    required this.context, // Require context
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 16.0),
       elevation: 2.0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
       ),
+      color: theme.colorScheme.surface, // Use theme's surface color
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -204,9 +219,10 @@ class HistoryListItem extends StatelessWidget {
               children: [
                 Text(
                   vehicleNumber,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface, // Use theme's onSurface color
                   ),
                 ),
                 Text(
@@ -214,7 +230,7 @@ class HistoryListItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primaryColor,
+                    color: theme.colorScheme.primary, // Use theme's primary color
                   ),
                 ),
               ],
@@ -222,9 +238,9 @@ class HistoryListItem extends StatelessWidget {
             const SizedBox(height: 4.0),
             Text(
               ticketId,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14.0,
-                color: Colors.grey,
+                color: theme.colorScheme.onSurfaceVariant, // Use theme's onSurfaceVariant color
               ),
             ),
             const SizedBox(height: 8.0),
@@ -234,26 +250,26 @@ class HistoryListItem extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Check-in',
-                      style: TextStyle(fontSize: 14.0, color: Colors.grey),
+                      style: TextStyle(fontSize: 14.0, color: theme.colorScheme.onSurfaceVariant), // Use theme's onSurfaceVariant color
                     ),
                     Text(
                       checkInTime,
-                      style: const TextStyle(fontSize: 14.0),
+                      style: TextStyle(fontSize: 14.0, color: theme.colorScheme.onSurface), // Use theme's onSurface color
                     ),
                   ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
+                    Text(
                       'Check-out',
-                      style: TextStyle(fontSize: 14.0, color: Colors.grey),
+                      style: TextStyle(fontSize: 14.0, color: theme.colorScheme.onSurfaceVariant), // Use theme's onSurfaceVariant color
                     ),
                     Text(
                       checkOutTime,
-                      style: const TextStyle(fontSize: 14.0),
+                      style: TextStyle(fontSize: 14.0, color: theme.colorScheme.onSurface), // Use theme's onSurface color
                     ),
                   ],
                 ),

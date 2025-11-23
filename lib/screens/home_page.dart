@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:parkmate/utils/color_page.dart'; // Assuming color_page.dart exists for colors
 import 'package:parkmate/screens/check_in_page.dart';
 import 'package:parkmate/screens/history_page.dart';
+import 'package:parkmate/screens/profile_page.dart'; // Import ProfilePage
+import 'package:parkmate/screens/settings_page.dart'; // Import SettingsPage
+import 'package:parkmate/screens/check_out_page.dart'; // Import CheckOutPage
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,124 +22,19 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        title: const Text(
-          'Parking Lot A',
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () {
-              // Handle profile icon press
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 40.0),
-            color: Colors.white,
-            child: Column(
-              children: [
-                Text(
-                  'ParkMate',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryColor, // Using primaryColor for ParkMate title
-                  ),
-                ),
-                const Text(
-                  'Digital Parking System',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Container(
-              color: Colors.grey[100], // Light grey background for the cards section
-              child: GridView.count(
-                crossAxisCount: 2,
-                padding: const EdgeInsets.all(16.0),
-                crossAxisSpacing: 16.0,
-                mainAxisSpacing: 16.0,
-                children: [
-                  _buildFeatureCard(
-                    icon: Icons.directions_car, // Using a car icon for Check-In
-                    label: 'Check-In',
-                    color: AppColors.secondaryColor,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CheckInPage()),
-                      );
-                    },
-                  ),
-                  _buildFeatureCard(
-                    icon: Icons.search,
-                    label: 'Search Ticket\n/ Check-Out',
-                    color: AppColors.primaryColor, // Using primaryColor for Search Ticket
-                    onTap: () {
-                      // Handle Search Ticket / Check-Out tap
-                    },
-                  ),
-                  _buildFeatureCard(
-                    icon: Icons.history,
-                    label: 'History',
-                    color: AppColors.secondaryColor,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const HistoryPage()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home, color: _selectedIndex == 0 ? AppColors.primaryColor : Colors.grey),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search, color: _selectedIndex == 1 ? AppColors.primaryColor : Colors.grey),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history, color: _selectedIndex == 2 ? AppColors.primaryColor : Colors.grey),
-            label: 'History',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings, color: _selectedIndex == 3 ? AppColors.primaryColor : Colors.grey),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: AppColors.primaryColor,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed, // Ensures all items are visible
-      ),
-    );
+  String _getAppBarTitle({required int index}) {
+    switch (index) {
+      case 0:
+        return 'Parking Lot A'; // Default for home
+      case 1:
+        return 'Profile';
+      default:
+        return 'ParkMate';
+    }
   }
 
   Widget _buildFeatureCard({
+    required BuildContext context, // Add BuildContext here
     required IconData icon,
     required String label,
     required Color color,
@@ -162,13 +60,143 @@ class _HomePageState extends State<HomePage> {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface, // Make text color theme-aware
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Move theme declaration here
+    final List<Widget> _widgetOptions = <Widget>[
+      // Original Home content (GridView of cards)
+      Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 40.0),
+            color: theme.colorScheme.surface, // Use theme's surface color
+            child: Column(
+              children: [
+                Text(
+                  'ParkMate',
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryColor, // Use a consistent primary color
+                  ),
+                ),
+                Text(
+                  'Digital Parking System',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: AppColors.accentColor, // Use a consistent accent color
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              color: theme.colorScheme.background, // Use theme's background color
+              child: GridView.count(
+                crossAxisCount: 2,
+                padding: const EdgeInsets.all(16.0),
+                crossAxisSpacing: 16.0,
+                mainAxisSpacing: 16.0,
+                children: [
+                  _buildFeatureCard(
+                    context: context, // Pass context
+                    icon: Icons.directions_car,
+                    label: 'Check-In',
+                    color: theme.colorScheme.secondary, // Use theme's secondary color
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CheckInPage()),
+                      );
+                    },
+                  ),
+                  _buildFeatureCard(
+                    context: context, // Pass context
+                    icon: Icons.receipt_long,
+                    label: 'Check Out',
+                    color: theme.colorScheme.primary, // Use theme's primary color
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CheckOutPage()),
+                      );
+                    },
+                  ),
+                  _buildFeatureCard(
+                    context: context, // Pass context
+                    icon: Icons.history,
+                    label: 'History',
+                    color: theme.colorScheme.secondary, // Use theme's secondary color
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HistoryPage()),
+                      );
+                    },
+                  ),
+                  _buildFeatureCard(
+                    context: context, // Pass context
+                    icon: Icons.report,
+                    label: 'Reports',
+                    color: theme.colorScheme.primary, // Use theme's primary color
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Reports button pressed', style: TextStyle(color: theme.colorScheme.onSurface))),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      const ProfilePage(), // Profile Page
+    ];
+
+    return Scaffold(
+      appBar: _selectedIndex == 1 // If Profile page is selected
+          ? null // No AppBar for Profile page to avoid double heading
+          : AppBar(
+              backgroundColor: theme.colorScheme.primary, // Use theme's primary color
+              title: Text(
+                _getAppBarTitle(index: _selectedIndex),
+                style: TextStyle(color: theme.colorScheme.onPrimary), // Use theme's onPrimary color
+              ),
+              actions: [], // Removed the profile icon
+            ),
+      body: _widgetOptions.elementAt(_selectedIndex), // Add this line to display the selected page content
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: theme.colorScheme.surface, // Use theme's surface color for background
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home, color: _selectedIndex == 0 ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person, color: _selectedIndex == 1 ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: theme.colorScheme.primary,
+        unselectedItemColor: theme.colorScheme.onSurfaceVariant,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed, // Ensures all items are visible
       ),
     );
   }
