@@ -6,6 +6,7 @@ class Ticket {
   final String? slotNumber;
   final DateTime checkInTime;
   DateTime? checkOutTime;
+  final double? amount;
 
   Ticket({
     required this.id,
@@ -15,5 +16,33 @@ class Ticket {
     this.slotNumber,
     required this.checkInTime,
     this.checkOutTime,
+    this.amount,
   });
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'vehicleNumber': vehicleNumber,
+      'vehicleType': vehicleType,
+      'phoneNumber': phoneNumber,
+      'slotNumber': slotNumber,
+      'checkInTime': checkInTime.toIso8601String(),
+      'checkOutTime': checkOutTime?.toIso8601String(),
+      'amount': amount,
+    };
+  }
+
+  factory Ticket.fromMap(Map<String, dynamic> map) {
+    return Ticket(
+      id: map['id'],
+      vehicleNumber: map['vehicleNumber'],
+      vehicleType: map['vehicleType'],
+      phoneNumber: map['phoneNumber'],
+      slotNumber: map['slotNumber'],
+      checkInTime: DateTime.parse(map['checkInTime']),
+      checkOutTime: map['checkOutTime'] != null
+          ? DateTime.parse(map['checkOutTime'])
+          : null,
+      amount: map['amount'] != null ? (map['amount'] as num).toDouble() : null,
+    );
+  }
 }

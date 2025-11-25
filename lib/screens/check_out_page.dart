@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:parkmate/providers/parking_provider.dart';
+import 'package:parkmate/providers/parking_rate_provider.dart';
 import 'package:parkmate/models/ticket.dart';
 
 import 'dart:async'; // Import Timer
@@ -35,8 +36,10 @@ class _CheckOutPageState extends State<CheckOutPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final formattedDate = "${_currentTime.day.toString().padLeft(2, '0')}/${_currentTime.month.toString().padLeft(2, '0')}/${_currentTime.year}";
+    final formattedDate =
+        "${_currentTime.day.toString().padLeft(2, '0')}/${_currentTime.month.toString().padLeft(2, '0')}/${_currentTime.year}";
     final formattedTime = TimeOfDay.fromDateTime(_currentTime).format(context);
+    final rateProvider = Provider.of<ParkingRateProvider>(context);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -59,7 +62,10 @@ class _CheckOutPageState extends State<CheckOutPage> {
             return Center(
               child: Text(
                 'No vehicles parked currently.',
-                style: TextStyle(color: theme.colorScheme.onBackground, fontSize: 18),
+                style: TextStyle(
+                  color: theme.colorScheme.onBackground,
+                  fontSize: 18,
+                ),
               ),
             );
           }
@@ -68,6 +74,12 @@ class _CheckOutPageState extends State<CheckOutPage> {
             itemCount: parkingProvider.activeTickets.length,
             itemBuilder: (context, index) {
               final ticket = parkingProvider.activeTickets[index];
+              final duration = _currentTime.difference(ticket.checkInTime);
+              final cost = rateProvider.calculateCost(
+                ticket.vehicleType,
+                duration,
+              );
+
               return Card(
                 color: theme.colorScheme.surface,
                 margin: const EdgeInsets.only(bottom: 16.0),
@@ -101,7 +113,9 @@ class _CheckOutPageState extends State<CheckOutPage> {
                               ),
                               const SizedBox(width: 5),
                               Icon(
-                                ticket.vehicleType == 'Bike' ? Icons.motorcycle : Icons.directions_car,
+                                ticket.vehicleType == 'Bike'
+                                    ? Icons.motorcycle
+                                    : Icons.directions_car,
                                 color: theme.colorScheme.primary,
                               ),
                             ],
@@ -111,30 +125,64 @@ class _CheckOutPageState extends State<CheckOutPage> {
                       const SizedBox(height: 10),
                       Text(
                         'Check-In: ${ticket.checkInTime.day.toString().padLeft(2, '0')}/${ticket.checkInTime.month.toString().padLeft(2, '0')}/${ticket.checkInTime.year} ${TimeOfDay.fromDateTime(ticket.checkInTime).format(context)}',
-                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 5),
                       Text(
                         'Check-Out: $formattedDate $formattedTime',
-                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Duration: ${duration.inHours}h ${duration.inMinutes % 60}m',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Total Cost: ₹${cost.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
                       if (ticket.slotNumber != null)
                         Text(
                           'Slot: ${ticket.slotNumber}',
-                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            parkingProvider.checkOutTicket(ticket.id, DateTime.now());
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Checked out ${ticket.vehicleNumber}', style: TextStyle(color: theme.colorScheme.onSurface)),
-                                backgroundColor: theme.colorScheme.primary,
-                              ),
+                          onPressed: () async {
+                            await parkingProvider.checkOutTicket(
+                              ticket.id,
+                              DateTime.now(),
+                              cost,
                             );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Checked out ${ticket.vehicleNumber}. Cost: ₹${cost.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  backgroundColor: theme.colorScheme.primary,
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: theme.colorScheme.error,

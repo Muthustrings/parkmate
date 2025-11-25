@@ -3,6 +3,7 @@ import 'package:parkmate/screens/login_page.dart'; // Import LoginPage
 // Removed unused import: import 'package:parkmate/utils/color_page.dart';
 
 import 'package:parkmate/screens/settings_page.dart'; // Import SettingsPage
+import 'package:parkmate/screens/rate_settings_page.dart'; // Import RateSettingsPage
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -26,11 +27,15 @@ class ProfilePage extends StatelessWidget {
           children: <Widget>[
             CircleAvatar(
               radius: 60,
-              backgroundColor: theme.colorScheme.surfaceVariant, // Use theme's surfaceVariant color
+              backgroundColor: theme
+                  .colorScheme
+                  .surfaceVariant, // Use theme's surfaceVariant color
               child: Icon(
                 Icons.person,
                 size: 80,
-                color: theme.colorScheme.onSurfaceVariant, // Use theme's onSurfaceVariant color
+                color: theme
+                    .colorScheme
+                    .onSurfaceVariant, // Use theme's onSurfaceVariant color
               ),
             ),
             const SizedBox(height: 20),
@@ -39,7 +44,9 @@ class ProfilePage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onBackground, // Use theme's onBackground color
+                color: theme
+                    .colorScheme
+                    .onBackground, // Use theme's onBackground color
               ),
             ),
             const SizedBox(height: 10),
@@ -47,13 +54,70 @@ class ProfilePage extends StatelessWidget {
               'user.email@example.com', // Replace with actual user email
               style: TextStyle(
                 fontSize: 16,
-                color: theme.colorScheme.onSurfaceVariant, // Use theme's onSurfaceVariant color
+                color: theme
+                    .colorScheme
+                    .onSurfaceVariant, // Use theme's onSurfaceVariant color
               ),
             ),
             const SizedBox(height: 30),
             ListTile(
+              leading: Icon(Icons.edit, color: theme.colorScheme.primary),
+              title: Text(
+                'Edit Profile',
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Edit Profile tapped',
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.lock, color: theme.colorScheme.primary),
+              title: Text(
+                'Change Password',
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Change Password tapped',
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.price_change,
+                color: theme.colorScheme.primary,
+              ),
+              title: Text(
+                'Check Out Settings',
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RateSettingsPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.settings, color: theme.colorScheme.primary),
-              title: Text('Settings', style: TextStyle(color: theme.colorScheme.onSurface)),
+              title: Text(
+                'Settings',
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
               onTap: () {
                 Navigator.push(
                   context,
@@ -62,34 +126,25 @@ class ProfilePage extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.edit, color: theme.colorScheme.primary),
-              title: Text('Edit Profile', style: TextStyle(color: theme.colorScheme.onSurface)),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Edit Profile tapped', style: TextStyle(color: theme.colorScheme.onSurface))),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.lock, color: theme.colorScheme.primary),
-              title: Text('Change Password', style: TextStyle(color: theme.colorScheme.onSurface)),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Change Password tapped', style: TextStyle(color: theme.colorScheme.onSurface))),
-                );
-              },
-            ),
-            ListTile(
               leading: Icon(Icons.logout, color: theme.colorScheme.primary),
-              title: Text('Logout', style: TextStyle(color: theme.colorScheme.onSurface)),
+              title: Text(
+                'Logout',
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
               onTap: () {
                 // Implement logout functionality here
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const LoginPage()),
-                  (Route<dynamic> route) => false, // This makes sure you can't go back to the profile page
+                  (Route<dynamic> route) =>
+                      false, // This makes sure you can't go back to the profile page
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Logged out successfully!', style: TextStyle(color: theme.colorScheme.onSurface))),
+                  SnackBar(
+                    content: Text(
+                      'Logged out successfully!',
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                  ),
                 );
               },
             ),

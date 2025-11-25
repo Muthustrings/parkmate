@@ -4,6 +4,7 @@ import 'dart:async'; // Import for Timer
 import 'package:provider/provider.dart'; // Import provider
 import 'package:parkmate/providers/theme_provider.dart'; // Import ThemeProvider
 import 'package:parkmate/providers/parking_provider.dart'; // Import ParkingProvider
+import 'package:parkmate/providers/parking_rate_provider.dart'; // Import ParkingRateProvider
 import 'package:parkmate/utils/color_page.dart'; // Import AppColors for custom colors
 
 void main() {
@@ -12,6 +13,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => ParkingProvider()),
+        ChangeNotifierProvider(create: (context) => ParkingRateProvider()),
       ],
       child: const MyApp(),
     ),
@@ -29,48 +31,63 @@ class MyApp extends StatelessWidget {
           title: 'ParkMate',
           themeMode: themeProvider.themeMode,
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: AppColors.primaryColor,
-              brightness: Brightness.light,
-            ).copyWith(
-              background: AppColors.lightBackgroundColor,
-              onBackground: AppColors.lightTextColor,
-              surface: AppColors.lightBackgroundColor,
-              onSurface: AppColors.lightTextColor,
-              onSurfaceVariant: AppColors.lightTextColor.withOpacity(0.6), // Ensure visibility for hints/icons
-              primary: AppColors.lightAppBarColor,
-              onPrimary: AppColors.lightTextColor,
-            ),
+            colorScheme:
+                ColorScheme.fromSeed(
+                  seedColor: AppColors.primaryColor,
+                  brightness: Brightness.light,
+                ).copyWith(
+                  background: AppColors.lightBackgroundColor,
+                  onBackground: AppColors.lightTextColor,
+                  surface: AppColors.lightBackgroundColor,
+                  onSurface: AppColors.lightTextColor,
+                  onSurfaceVariant: AppColors.lightTextColor.withOpacity(
+                    0.6,
+                  ), // Ensure visibility for hints/icons
+                  primary: AppColors.lightAppBarColor,
+                  onPrimary: AppColors.lightTextColor,
+                ),
             useMaterial3: true,
             appBarTheme: const AppBarTheme(
               backgroundColor: AppColors.lightAppBarColor,
             ),
             snackBarTheme: SnackBarThemeData(
-              backgroundColor: AppColors.primaryColor, // Dark blue background for snackbar
-              contentTextStyle: TextStyle(color: AppColors.darkTextColor), // White text for snackbar content
+              backgroundColor:
+                  AppColors.primaryColor, // Dark blue background for snackbar
+              contentTextStyle: TextStyle(
+                color: AppColors.darkTextColor,
+              ), // White text for snackbar content
             ),
           ),
           darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: AppColors.primaryColor,
-              brightness: Brightness.dark,
-            ).copyWith(
-              background: AppColors.darkBackgroundColor,
-              onBackground: AppColors.darkTextColor,
-              surface: const Color(0xFF1E1E1E), // Slightly lighter dark grey for surfaces
-              onSurface: AppColors.darkTextColor,
-              onSurfaceVariant: AppColors.darkTextColor.withOpacity(0.7), // Slightly more opaque for better visibility
-              primary: AppColors.primaryColor,
-              onPrimary: AppColors.darkTextColor,
-              secondary: AppColors.primaryColor, // Set secondary color to primary for dark mode
-            ),
+            colorScheme:
+                ColorScheme.fromSeed(
+                  seedColor: AppColors.primaryColor,
+                  brightness: Brightness.dark,
+                ).copyWith(
+                  background: AppColors.darkBackgroundColor,
+                  onBackground: AppColors.darkTextColor,
+                  surface: const Color(
+                    0xFF1E1E1E,
+                  ), // Slightly lighter dark grey for surfaces
+                  onSurface: AppColors.darkTextColor,
+                  onSurfaceVariant: AppColors.darkTextColor.withOpacity(
+                    0.7,
+                  ), // Slightly more opaque for better visibility
+                  primary: AppColors.primaryColor,
+                  onPrimary: AppColors.darkTextColor,
+                  secondary: AppColors
+                      .primaryColor, // Set secondary color to primary for dark mode
+                ),
             useMaterial3: true,
             appBarTheme: const AppBarTheme(
               backgroundColor: AppColors.primaryColor,
             ),
             snackBarTheme: SnackBarThemeData(
-              backgroundColor: AppColors.primaryColor, // Dark blue background for snackbar
-              contentTextStyle: TextStyle(color: AppColors.darkTextColor), // White text for snackbar content
+              backgroundColor:
+                  AppColors.primaryColor, // Dark blue background for snackbar
+              contentTextStyle: TextStyle(
+                color: AppColors.darkTextColor,
+              ), // White text for snackbar content
             ),
           ),
           home: const SplashScreen(), // Set SplashScreen as the home page
@@ -116,7 +133,8 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'ParkMate',
               style: TextStyle(
-                color: theme.colorScheme.onPrimary, // Use theme's onPrimary color
+                color:
+                    theme.colorScheme.onPrimary, // Use theme's onPrimary color
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
               ),
@@ -125,7 +143,8 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Digital Parking System',
               style: TextStyle(
-                color: theme.colorScheme.onPrimary, // Use theme's onPrimary color
+                color:
+                    theme.colorScheme.onPrimary, // Use theme's onPrimary color
                 fontSize: 20,
               ),
             ),
