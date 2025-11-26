@@ -3,8 +3,9 @@ import 'package:parkmate/utils/color_page.dart'; // Assuming color_page.dart exi
 import 'package:parkmate/screens/check_in_page.dart';
 import 'package:parkmate/screens/history_page.dart';
 import 'package:parkmate/screens/profile_page.dart'; // Import ProfilePage
-import 'package:parkmate/screens/settings_page.dart'; // Import SettingsPage
+
 import 'package:parkmate/screens/check_out_page.dart'; // Import CheckOutPage
+import 'package:parkmate/screens/reports_page.dart'; // Import ReportsPage
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -27,7 +28,7 @@ class _HomePageState extends State<HomePage> {
       case 0:
         return 'Parking Lot A'; // Default for home
       case 1:
-        return 'Profile';
+        return 'Settings';
       default:
         return 'ParkMate';
     }
@@ -42,20 +43,14 @@ class _HomePageState extends State<HomePage> {
   }) {
     return Card(
       elevation: 4.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(15.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 50.0,
-              color: color,
-            ),
+            Icon(icon, size: 50.0, color: color),
             const SizedBox(height: 10.0),
             Text(
               label,
@@ -63,7 +58,9 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface, // Make text color theme-aware
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface, // Make text color theme-aware
               ),
             ),
           ],
@@ -90,14 +87,16 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     fontSize: 40,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primaryColor, // Use a consistent primary color
+                    color: AppColors
+                        .primaryColor, // Use a consistent primary color
                   ),
                 ),
                 Text(
                   'Digital Parking System',
                   style: TextStyle(
                     fontSize: 18,
-                    color: AppColors.accentColor, // Use a consistent accent color
+                    color:
+                        AppColors.accentColor, // Use a consistent accent color
                   ),
                 ),
               ],
@@ -105,7 +104,8 @@ class _HomePageState extends State<HomePage> {
           ),
           Expanded(
             child: Container(
-              color: theme.colorScheme.background, // Use theme's background color
+              color:
+                  theme.colorScheme.background, // Use theme's background color
               child: GridView.count(
                 crossAxisCount: 2,
                 padding: const EdgeInsets.all(16.0),
@@ -116,11 +116,15 @@ class _HomePageState extends State<HomePage> {
                     context: context, // Pass context
                     icon: Icons.directions_car,
                     label: 'Check-In',
-                    color: theme.colorScheme.secondary, // Use theme's secondary color
+                    color: theme
+                        .colorScheme
+                        .secondary, // Use theme's secondary color
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const CheckInPage()),
+                        MaterialPageRoute(
+                          builder: (context) => const CheckInPage(),
+                        ),
                       );
                     },
                   ),
@@ -128,11 +132,14 @@ class _HomePageState extends State<HomePage> {
                     context: context, // Pass context
                     icon: Icons.receipt_long,
                     label: 'Check Out',
-                    color: theme.colorScheme.primary, // Use theme's primary color
+                    color:
+                        theme.colorScheme.primary, // Use theme's primary color
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const CheckOutPage()),
+                        MaterialPageRoute(
+                          builder: (context) => const CheckOutPage(),
+                        ),
                       );
                     },
                   ),
@@ -140,11 +147,15 @@ class _HomePageState extends State<HomePage> {
                     context: context, // Pass context
                     icon: Icons.history,
                     label: 'History',
-                    color: theme.colorScheme.secondary, // Use theme's secondary color
+                    color: theme
+                        .colorScheme
+                        .secondary, // Use theme's secondary color
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const HistoryPage()),
+                        MaterialPageRoute(
+                          builder: (context) => const HistoryPage(),
+                        ),
                       );
                     },
                   ),
@@ -152,10 +163,14 @@ class _HomePageState extends State<HomePage> {
                     context: context, // Pass context
                     icon: Icons.report,
                     label: 'Reports',
-                    color: theme.colorScheme.primary, // Use theme's primary color
+                    color:
+                        theme.colorScheme.primary, // Use theme's primary color
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Reports button pressed', style: TextStyle(color: theme.colorScheme.onSurface))),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReportsPage(),
+                        ),
                       );
                     },
                   ),
@@ -169,27 +184,46 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      appBar: _selectedIndex == 1 // If Profile page is selected
+      appBar:
+          _selectedIndex ==
+              1 // If Profile page is selected
           ? null // No AppBar for Profile page to avoid double heading
           : AppBar(
-              backgroundColor: theme.colorScheme.primary, // Use theme's primary color
+              backgroundColor:
+                  theme.colorScheme.primary, // Use theme's primary color
               title: Text(
                 _getAppBarTitle(index: _selectedIndex),
-                style: TextStyle(color: theme.colorScheme.onPrimary), // Use theme's onPrimary color
+                style: TextStyle(
+                  color: theme.colorScheme.onPrimary,
+                ), // Use theme's onPrimary color
               ),
               actions: [], // Removed the profile icon
             ),
-      body: _widgetOptions.elementAt(_selectedIndex), // Add this line to display the selected page content
+      body: _widgetOptions.elementAt(
+        _selectedIndex,
+      ), // Add this line to display the selected page content
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: theme.colorScheme.surface, // Use theme's surface color for background
+        backgroundColor: theme
+            .colorScheme
+            .surface, // Use theme's surface color for background
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home, color: _selectedIndex == 0 ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant),
+            icon: Icon(
+              Icons.home,
+              color: _selectedIndex == 0
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: _selectedIndex == 1 ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant),
-            label: 'Profile',
+            icon: Icon(
+              Icons.settings,
+              color: _selectedIndex == 1
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            label: 'Settings',
           ),
         ],
         currentIndex: _selectedIndex,

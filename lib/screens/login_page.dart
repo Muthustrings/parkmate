@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+import 'package:parkmate/providers/user_provider.dart';
 import 'package:parkmate/screens/signup_page.dart';
 import 'package:parkmate/screens/home_page.dart';
 import 'package:parkmate/services/database_helper.dart';
@@ -43,6 +45,9 @@ class _LoginPageState extends State<LoginPage> {
       final user = await DatabaseHelper.instance.getUser(phone, password);
       if (user != null) {
         if (mounted) {
+          // Set user in provider
+          Provider.of<UserProvider>(context, listen: false).setUser(user);
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomePage()),
@@ -57,9 +62,9 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) {
@@ -84,10 +89,10 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
         // Navigate to home page after successful google sign in
-         Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
       }
     } catch (error) {
       if (mounted) {
@@ -103,8 +108,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -113,7 +116,8 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: SingleChildScrollView( // Added SingleChildScrollView to prevent overflow
+          child: SingleChildScrollView(
+            // Added SingleChildScrollView to prevent overflow
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -129,7 +133,10 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 10),
                 Text(
                   'Login to continue',
-                  style: TextStyle(color: theme.colorScheme.onBackground, fontSize: 18),
+                  style: TextStyle(
+                    color: theme.colorScheme.onBackground,
+                    fontSize: 18,
+                  ),
                 ),
                 const SizedBox(height: 40),
                 Container(
@@ -142,9 +149,14 @@ class _LoginPageState extends State<LoginPage> {
                     keyboardType: TextInputType.phone,
                     style: TextStyle(color: theme.colorScheme.onSurface),
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.phone, color: theme.colorScheme.onSurfaceVariant),
+                      prefixIcon: Icon(
+                        Icons.phone,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       hintText: 'Phone Number',
-                      hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
                         vertical: 15.0,
@@ -164,9 +176,14 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: _obscurePassword,
                     style: TextStyle(color: theme.colorScheme.onSurface),
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock_outline, color: theme.colorScheme.onSurfaceVariant),
+                      prefixIcon: Icon(
+                        Icons.lock_outline,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       hintText: 'Password',
-                      hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
                         vertical: 15.0,
@@ -174,7 +191,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         onPressed: () {
@@ -194,7 +213,9 @@ class _LoginPageState extends State<LoginPage> {
                         SnackBar(
                           content: Text(
                             'Forgot Password button pressed',
-                            style: TextStyle(color: theme.colorScheme.onSurface),
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
                         ),
                       );
@@ -217,18 +238,33 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   child: _isLoading
-                      ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
-                      : Text('Login', style: TextStyle(fontSize: 18, color: theme.colorScheme.onPrimary)),
+                      ? CircularProgressIndicator(
+                          color: theme.colorScheme.onPrimary,
+                        )
+                      : Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 25),
                 Row(
                   children: <Widget>[
-                    Expanded(child: Divider(color: theme.colorScheme.onBackground)),
+                    Expanded(
+                      child: Divider(color: theme.colorScheme.onBackground),
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: Text('OR', style: TextStyle(color: theme.colorScheme.onBackground)),
+                      child: Text(
+                        'OR',
+                        style: TextStyle(color: theme.colorScheme.onBackground),
+                      ),
                     ),
-                    Expanded(child: Divider(color: theme.colorScheme.onBackground)),
+                    Expanded(
+                      child: Divider(color: theme.colorScheme.onBackground),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 25),
@@ -253,7 +289,10 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(width: 10),
                       Text(
                         'Sign in with Google',
-                        style: TextStyle(fontSize: 18, color: theme.colorScheme.onPrimary),
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: theme.colorScheme.onPrimary,
+                        ),
                       ),
                     ],
                   ),
@@ -264,13 +303,18 @@ class _LoginPageState extends State<LoginPage> {
                   children: <Widget>[
                     Text(
                       'New here?',
-                      style: TextStyle(color: theme.colorScheme.onBackground, fontSize: 16),
+                      style: TextStyle(
+                        color: theme.colorScheme.onBackground,
+                        fontSize: 16,
+                      ),
                     ),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const SignUpPage()),
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpPage(),
+                          ),
                         );
                       },
                       child: Text(

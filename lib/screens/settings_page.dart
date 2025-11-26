@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:parkmate/providers/theme_provider.dart'; // Assuming this will be created
-import 'package:parkmate/screens/rate_settings_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -48,29 +47,7 @@ class SettingsPage extends StatelessWidget {
               // TODO: Implement state management for notifications
             },
           ),
-          ListTile(
-            leading: Icon(
-              Icons.attach_money,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            title: Text(
-              'Parking Rates',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            ),
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const RateSettingsPage(),
-                ),
-              );
-            },
-          ),
+
           // Other settings options can be added here
         ],
       ),

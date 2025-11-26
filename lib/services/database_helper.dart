@@ -56,7 +56,33 @@ class DatabaseHelper {
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute('ALTER TABLE tickets ADD COLUMN amount REAL');
+      // Check if tickets table exists
+      final tables = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='tickets'",
+      );
+
+      if (tables.isEmpty) {
+        // Create tickets table if it doesn't exist
+        await db.execute('''
+          CREATE TABLE tickets (
+            id TEXT PRIMARY KEY,
+            vehicleNumber TEXT NOT NULL,
+            vehicleType TEXT NOT NULL,
+            phoneNumber TEXT,
+            slotNumber TEXT,
+            checkInTime TEXT NOT NULL,
+            checkOutTime TEXT,
+            amount REAL
+          )
+        ''');
+      } else {
+        // Check if amount column exists
+        final columns = await db.rawQuery('PRAGMA table_info(tickets)');
+        final hasAmount = columns.any((c) => c['name'] == 'amount');
+        if (!hasAmount) {
+          await db.execute('ALTER TABLE tickets ADD COLUMN amount REAL');
+        }
+      }
     }
   }
 
@@ -71,6 +97,7 @@ class DatabaseHelper {
 
   Future<User?> getUser(String phone, String password) async {
     final db = await instance.database;
+    print('Checking user: $phone'); // Debug print
     final maps = await db.query(
       'users',
       columns: ['phone', 'password', 'name'],
@@ -79,8 +106,10 @@ class DatabaseHelper {
     );
 
     if (maps.isNotEmpty) {
+      print('User found: ${maps.first}'); // Debug print
       return User.fromMap(maps.first);
     } else {
+      print('User not found'); // Debug print
       return null;
     }
   }
@@ -95,6 +124,16 @@ class DatabaseHelper {
     );
 
     return maps.isNotEmpty;
+  }
+
+  Future<int> updateUser(User user) async {
+    final db = await instance.database;
+    return await db.update(
+      'users',
+      user.toMap(),
+      where: 'phone = ?',
+      whereArgs: [user.phone],
+    );
   }
 
   // Ticket Methods
@@ -124,6 +163,15 @@ class DatabaseHelper {
       where: 'checkOutTime IS NOT NULL',
       orderBy: 'checkOutTime DESC',
     );
+
+    return List.generate(maps.length, (i) {
+      return Ticket.fromMap(maps[i]);
+    });
+  }
+
+  Future<List<Ticket>> getAllTickets() async {
+    final db = await instance.database;
+    final maps = await db.query('tickets', orderBy: 'checkInTime DESC');
 
     return List.generate(maps.length, (i) {
       return Ticket.fromMap(maps[i]);

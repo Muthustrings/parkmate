@@ -47,377 +47,377 @@ class _CheckInPageState extends State<CheckInPage> {
     super.dispose();
   }
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        backgroundColor:
-            theme.colorScheme.surface, // Use surface for AppBar background
+        backgroundColor: theme.colorScheme.surface,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: theme.colorScheme.onSurface,
-          ), // Use onSurface for icon color
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         title: Text(
           'Check-In',
-          style: TextStyle(
-            color: theme.colorScheme.onSurface,
-          ), // Use onSurface for title color
+          style: TextStyle(color: theme.colorScheme.onSurface),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0), // Added padding to the scroll view
-        child: Column(
-          children: [
-            // Vehicle Type Selection
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _selectedVehicleType = 'Bike';
-                      });
-                    },
-                    icon: Icon(
-                      Icons.motorcycle,
-                      color: _selectedVehicleType == 'Bike'
-                          ? theme
-                                .colorScheme
-                                .onSecondary // Use onSecondary for selected icon
-                          : theme.colorScheme.onSurface,
-                    ), // Use onSurface for unselected icon
-                    label: Text(
-                      'Bike',
-                      style: TextStyle(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Vehicle Type Selection
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _selectedVehicleType = 'Bike';
+                        });
+                      },
+                      icon: Icon(
+                        Icons.motorcycle,
                         color: _selectedVehicleType == 'Bike'
-                            ? theme
-                                  .colorScheme
-                                  .onSecondary // Use onSecondary for selected text
+                            ? theme.colorScheme.onSecondary
                             : theme.colorScheme.onSurface,
                       ),
-                    ), // Use onSurface for unselected text
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedVehicleType == 'Bike'
-                          ? theme
-                                .colorScheme
-                                .secondary // Use secondary for selected background
-                          : theme
-                                .colorScheme
-                                .surface, // Use surface for unselected background
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(
+                      label: Text(
+                        'Bike',
+                        style: TextStyle(
                           color: _selectedVehicleType == 'Bike'
-                              ? Colors.transparent
-                              : theme.colorScheme.outline,
-                        ), // Use outline for unselected border
+                              ? theme.colorScheme.onSecondary
+                              : theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedVehicleType == 'Bike'
+                            ? theme.colorScheme.secondary
+                            : theme.colorScheme.surface,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                            color: _selectedVehicleType == 'Bike'
+                                ? Colors.transparent
+                                : theme.colorScheme.outline,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _selectedVehicleType = 'Car';
-                      });
-                    },
-                    icon: Icon(
-                      Icons.directions_car,
-                      color: _selectedVehicleType == 'Car'
-                          ? theme.colorScheme.onSecondary
-                          : theme.colorScheme.onSurface,
-                    ),
-                    label: Text(
-                      'Car',
-                      style: TextStyle(
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _selectedVehicleType = 'Car';
+                        });
+                      },
+                      icon: Icon(
+                        Icons.directions_car,
                         color: _selectedVehicleType == 'Car'
                             ? theme.colorScheme.onSecondary
                             : theme.colorScheme.onSurface,
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedVehicleType == 'Car'
-                          ? theme.colorScheme.secondary
-                          : theme.colorScheme.surface,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(
+                      label: Text(
+                        'Car',
+                        style: TextStyle(
                           color: _selectedVehicleType == 'Car'
-                              ? Colors.transparent
-                              : theme.colorScheme.outline,
+                              ? theme.colorScheme.onSecondary
+                              : theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedVehicleType == 'Car'
+                            ? theme.colorScheme.secondary
+                            : theme.colorScheme.surface,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                            color: _selectedVehicleType == 'Car'
+                                ? Colors.transparent
+                                : theme.colorScheme.outline,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Vehicle Number Input
-            TextField(
-              controller: _vehicleNumberController,
-              style: TextStyle(color: theme.colorScheme.onSurface),
-              decoration: InputDecoration(
-                labelText: 'Vehicle Number',
-                labelStyle: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: theme.colorScheme.outline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: theme.colorScheme.primary),
-                ),
-                prefixIcon: Icon(
-                  Icons.numbers,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                filled: true,
-                fillColor: theme.colorScheme.surfaceVariant,
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            // Phone Number Input
-            TextField(
-              controller: _phoneController,
-              style: TextStyle(color: theme.colorScheme.onSurface),
-              decoration: InputDecoration(
-                labelText: 'Phone Number (optional)',
-                labelStyle: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: theme.colorScheme.outline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: theme.colorScheme.primary),
-                ),
-                prefixIcon: Icon(
-                  Icons.phone,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                filled: true,
-                fillColor: theme.colorScheme.surfaceVariant,
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
-            // Date and Time Selection
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _dateController,
-                    readOnly: true,
-                    style: TextStyle(color: theme.colorScheme.onSurface),
-                    decoration: InputDecoration(
-                      labelText: 'Date',
-                      labelStyle: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      prefixIcon: Icon(
-                        Icons.calendar_today,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      filled: true,
-                      fillColor: theme.colorScheme.surfaceVariant,
-                    ),
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          _selectedDate = pickedDate;
-                          _dateController.text = "${pickedDate.toLocal()}"
-                              .split(' ')[0];
-                        });
-                      }
-                    },
+              const SizedBox(height: 20),
+              // Vehicle Number Input
+              TextFormField(
+                controller: _vehicleNumberController,
+                style: TextStyle(color: theme.colorScheme.onSurface),
+                decoration: InputDecoration(
+                  labelText: 'Vehicle Number',
+                  labelStyle: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: _timeController,
-                    readOnly: true,
-                    style: TextStyle(color: theme.colorScheme.onSurface),
-                    decoration: InputDecoration(
-                      labelText: 'Time',
-                      labelStyle: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      prefixIcon: Icon(
-                        Icons.access_time,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      filled: true,
-                      fillColor: theme.colorScheme.surfaceVariant,
-                    ),
-                    onTap: () async {
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: _selectedTime,
-                      );
-                      if (pickedTime != null) {
-                        setState(() {
-                          _selectedTime = pickedTime;
-                          _timeController.text = pickedTime.format(context);
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Slot No. Input
-            TextField(
-              controller: _slotController,
-              style: TextStyle(color: theme.colorScheme.onSurface),
-              decoration: InputDecoration(
-                labelText: 'Slot No. (optional)',
-                labelStyle: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: theme.colorScheme.outline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: theme.colorScheme.primary),
-                ),
-                prefixIcon: Icon(
-                  Icons.local_parking,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                filled: true,
-                fillColor: theme.colorScheme.surfaceVariant,
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 30),
-            // Generate Ticket Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (_vehicleNumberController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Please enter vehicle number',
-                          style: TextStyle(color: theme.colorScheme.onSurface),
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-
-                  final DateTime checkInDateTime = DateTime(
-                    _selectedDate.year,
-                    _selectedDate.month,
-                    _selectedDate.day,
-                    _selectedTime.hour,
-                    _selectedTime.minute,
-                  );
-
-                  final ticket = Ticket(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    vehicleNumber: _vehicleNumberController.text,
-                    vehicleType: _selectedVehicleType,
-                    phoneNumber: _phoneController.text.isNotEmpty
-                        ? _phoneController.text
-                        : null,
-                    slotNumber: _slotController.text.isNotEmpty
-                        ? _slotController.text
-                        : null,
-                    checkInTime: checkInDateTime,
-                  );
-
-                  Provider.of<ParkingProvider>(
-                    context,
-                    listen: false,
-                  ).addTicket(ticket);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Ticket Generated Successfully!',
-                        style: TextStyle(color: theme.colorScheme.onSurface),
-                      ),
-                      backgroundColor: theme.colorScheme.primary,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-
-                  if (ticket.phoneNumber != null &&
-                      ticket.phoneNumber!.isNotEmpty) {
-                    _launchWhatsApp(ticket);
-                  }
-
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: theme.colorScheme.outline),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.numbers,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceVariant,
                 ),
-                child: Text(
-                  'Generate Ticket',
-                  style: TextStyle(
-                    color: theme.colorScheme.onPrimary,
-                    fontSize: 18,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter vehicle number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              // Phone Number Input
+              TextFormField(
+                controller: _phoneController,
+                style: TextStyle(color: theme.colorScheme.onSurface),
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  labelStyle: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: theme.colorScheme.outline),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.phone,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceVariant,
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    if (value.length != 10) {
+                      return 'Phone number must be 10 digits';
+                    }
+                    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                      return 'Phone number must contain only digits';
+                    }
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              // Date and Time Selection
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _dateController,
+                      readOnly: true,
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                      decoration: InputDecoration(
+                        labelText: 'Date',
+                        labelStyle: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.calendar_today,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        filled: true,
+                        fillColor: theme.colorScheme.surfaceVariant,
+                      ),
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (pickedDate != null) {
+                          setState(() {
+                            _selectedDate = pickedDate;
+                            _dateController.text = "${pickedDate.toLocal()}"
+                                .split(' ')[0];
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _timeController,
+                      readOnly: true,
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                      decoration: InputDecoration(
+                        labelText: 'Time',
+                        labelStyle: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.access_time,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        filled: true,
+                        fillColor: theme.colorScheme.surfaceVariant,
+                      ),
+                      onTap: () async {
+                        TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: _selectedTime,
+                        );
+                        if (pickedTime != null) {
+                          setState(() {
+                            _selectedTime = pickedTime;
+                            _timeController.text = pickedTime.format(context);
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Slot No. Input
+              TextField(
+                controller: _slotController,
+                style: TextStyle(color: theme.colorScheme.onSurface),
+                decoration: InputDecoration(
+                  labelText: 'Slot No. (optional)',
+                  labelStyle: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: theme.colorScheme.outline),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.local_parking,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceVariant,
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 30),
+              // Generate Ticket Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      final DateTime checkInDateTime = DateTime(
+                        _selectedDate.year,
+                        _selectedDate.month,
+                        _selectedDate.day,
+                        _selectedTime.hour,
+                        _selectedTime.minute,
+                      );
+
+                      final ticket = Ticket(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        vehicleNumber: _vehicleNumberController.text,
+                        vehicleType: _selectedVehicleType,
+                        phoneNumber: _phoneController.text.isNotEmpty
+                            ? _phoneController.text
+                            : null,
+                        slotNumber: _slotController.text.isNotEmpty
+                            ? _slotController.text
+                            : null,
+                        checkInTime: checkInDateTime,
+                      );
+
+                      Provider.of<ParkingProvider>(
+                        context,
+                        listen: false,
+                      ).addTicket(ticket);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Ticket Generated Successfully!',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          backgroundColor: theme.colorScheme.primary,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+
+                      if (ticket.phoneNumber != null &&
+                          ticket.phoneNumber!.isNotEmpty) {
+                        _launchWhatsApp(ticket);
+                      }
+
+                      Navigator.pop(context);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'Generate Ticket',
+                    style: TextStyle(
+                      color: theme.colorScheme.onPrimary,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

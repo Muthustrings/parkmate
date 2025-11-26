@@ -5,15 +5,26 @@ import 'package:provider/provider.dart'; // Import provider
 import 'package:parkmate/providers/theme_provider.dart'; // Import ThemeProvider
 import 'package:parkmate/providers/parking_provider.dart'; // Import ParkingProvider
 import 'package:parkmate/providers/parking_rate_provider.dart'; // Import ParkingRateProvider
+import 'package:parkmate/providers/user_provider.dart'; // Import UserProvider
 import 'package:parkmate/utils/color_page.dart'; // Import AppColors for custom colors
 
+import 'dart:io';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 void main() {
+  if (Platform.isWindows || Platform.isLinux) {
+    // Initialize FFI
+    sqfliteFfiInit();
+    // Change the default factory
+    databaseFactory = databaseFactoryFfi;
+  }
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => ParkingProvider()),
         ChangeNotifierProvider(create: (context) => ParkingRateProvider()),
+        ChangeNotifierProvider(create: (context) => UserProvider()),
       ],
       child: const MyApp(),
     ),
