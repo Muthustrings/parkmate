@@ -12,7 +12,16 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   String _selectedPeriod = 'Today'; // Default selected period
+  final TextEditingController _searchController = TextEditingController();
+  String _filterType = 'Vehicle Number';
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -31,106 +40,188 @@ class _HistoryPageState extends State<HistoryPage> {
           style: TextStyle(color: theme.colorScheme.onSurface),
         ),
       ),
-      body: Consumer<ParkingProvider>(
-        builder: (context, parkingProvider, child) {
-          final historyTickets = parkingProvider.historyTickets;
-
-          // Filter tickets based on selected period
-          List<Ticket> filteredTickets = historyTickets.where((ticket) {
-            if (ticket.checkOutTime == null) return false;
-            final now = DateTime.now();
-
-            if (_selectedPeriod == 'Today') {
-              return ticket.checkOutTime!.year == now.year &&
-                  ticket.checkOutTime!.month == now.month &&
-                  ticket.checkOutTime!.day == now.day;
-            } else if (_selectedPeriod == 'Week') {
-              final difference = now.difference(ticket.checkOutTime!);
-              return difference.inDays <= 7;
-            } else if (_selectedPeriod == 'Month') {
-              final difference = now.difference(ticket.checkOutTime!);
-              return difference.inDays <= 30;
-            }
-            return true;
-          }).toList();
-
-          // Stats calculation based on filtered tickets
-          final totalTickets = filteredTickets.length;
-          final revenueValue = filteredTickets.fold(
-            0.0,
-            (sum, ticket) => sum + (ticket.amount ?? 0.0),
-          );
-          final revenue = "₹${revenueValue.toStringAsFixed(2)}";
-
-          return Column(
-            children: [
-              // Top Cards: Revenue and Total Tickets for Selected Period
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildInfoCard(
-                        context: context,
-                        title: "$_selectedPeriod's Revenue",
-                        value: revenue,
-                        color: theme.colorScheme.primary,
+      body: Column(
+        children: [
+          // Search Bar and Filter
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildInfoCard(
-                        context: context,
-                        title: "Total Tickets",
-                        value: totalTickets.toString(),
-                        color: theme.colorScheme.primary,
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: theme.colorScheme.surface,
                     ),
-                  ],
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                  ),
                 ),
-              ),
-              // Segmented Control (Today, Week, Month)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: theme.colorScheme.outline),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _filterType,
+                      dropdownColor: theme.colorScheme.surface,
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                      items: <String>['Vehicle Number', 'Phone Number'].map((
+                        String value,
+                      ) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _filterType = newValue!;
+                        });
+                      },
+                    ),
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+              ],
+            ),
+          ),
+          Expanded(
+            child: Consumer<ParkingProvider>(
+              builder: (context, parkingProvider, child) {
+                final historyTickets = parkingProvider.historyTickets;
+
+                // Filter tickets based on selected period and search query
+                List<Ticket> filteredTickets = historyTickets.where((ticket) {
+                  if (ticket.checkOutTime == null) return false;
+                  final now = DateTime.now();
+                  bool matchesPeriod = false;
+
+                  if (_selectedPeriod == 'Today') {
+                    matchesPeriod =
+                        ticket.checkOutTime!.year == now.year &&
+                        ticket.checkOutTime!.month == now.month &&
+                        ticket.checkOutTime!.day == now.day;
+                  } else if (_selectedPeriod == 'Week') {
+                    final difference = now.difference(ticket.checkOutTime!);
+                    matchesPeriod = difference.inDays <= 7;
+                  } else if (_selectedPeriod == 'Month') {
+                    final difference = now.difference(ticket.checkOutTime!);
+                    matchesPeriod = difference.inDays <= 30;
+                  } else {
+                    matchesPeriod = true;
+                  }
+
+                  if (!matchesPeriod) return false;
+
+                  final query = _searchController.text.toLowerCase();
+                  if (query.isEmpty) return true;
+
+                  if (_filterType == 'Vehicle Number') {
+                    return ticket.vehicleNumber.toLowerCase().contains(query);
+                  } else {
+                    return ticket.phoneNumber?.toLowerCase().contains(query) ??
+                        false;
+                  }
+                }).toList();
+
+                // Stats calculation based on filtered tickets
+                final totalTickets = filteredTickets.length;
+                final revenueValue = filteredTickets.fold(
+                  0.0,
+                  (sum, ticket) => sum + (ticket.amount ?? 0.0),
+                );
+                final revenue = "₹${revenueValue.toStringAsFixed(2)}";
+
+                return Column(
                   children: [
-                    _buildPeriodButton(context, 'Today'),
-                    _buildPeriodButton(context, 'Week'),
-                    _buildPeriodButton(context, 'Month'),
-                  ],
-                ),
-              ),
-              // History List
-              Expanded(
-                child: filteredTickets.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No history available for $_selectedPeriod',
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontSize: 16,
+                    // Top Cards: Revenue and Total Tickets for Selected Period
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildInfoCard(
+                              context: context,
+                              title: "$_selectedPeriod's Revenue",
+                              value: revenue,
+                              color: theme.colorScheme.primary,
+                            ),
                           ),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16.0),
-                        itemCount: filteredTickets.length,
-                        itemBuilder: (context, index) {
-                          final ticket = filteredTickets[index];
-                          return HistoryListItem(
-                            ticket: ticket,
-                            context: context,
-                          );
-                        },
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildInfoCard(
+                              context: context,
+                              title: "Total Tickets",
+                              value: totalTickets.toString(),
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ],
                       ),
-              ),
-            ],
-          );
-        },
+                    ),
+                    // Segmented Control (Today, Week, Month)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildPeriodButton(context, 'Today'),
+                          _buildPeriodButton(context, 'Week'),
+                          _buildPeriodButton(context, 'Month'),
+                        ],
+                      ),
+                    ),
+                    // History List
+                    Expanded(
+                      child: filteredTickets.isEmpty
+                          ? Center(
+                              child: Text(
+                                'No history available for $_selectedPeriod',
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(16.0),
+                              itemCount: filteredTickets.length,
+                              itemBuilder: (context, index) {
+                                final ticket = filteredTickets[index];
+                                return HistoryListItem(
+                                  ticket: ticket,
+                                  context: context,
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

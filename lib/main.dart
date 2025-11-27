@@ -10,6 +10,9 @@ import 'package:parkmate/utils/color_page.dart'; // Import AppColors for custom 
 
 import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:parkmate/screens/home_page.dart';
+import 'package:parkmate/services/database_helper.dart';
 
 void main() {
   if (Platform.isWindows || Platform.isLinux) {
@@ -72,7 +75,7 @@ class MyApp extends StatelessWidget {
           darkTheme: ThemeData(
             colorScheme:
                 ColorScheme.fromSeed(
-                  seedColor: AppColors.primaryColor,
+                  seedColor: AppColors.darkPrimaryColor,
                   brightness: Brightness.dark,
                 ).copyWith(
                   background: AppColors.darkBackgroundColor,
@@ -84,18 +87,18 @@ class MyApp extends StatelessWidget {
                   onSurfaceVariant: AppColors.darkTextColor.withOpacity(
                     0.7,
                   ), // Slightly more opaque for better visibility
-                  primary: AppColors.primaryColor,
+                  primary: AppColors.darkPrimaryColor,
                   onPrimary: AppColors.darkTextColor,
                   secondary: AppColors
-                      .primaryColor, // Set secondary color to primary for dark mode
+                      .darkPrimaryColor, // Set secondary color to primary for dark mode
                 ),
             useMaterial3: true,
             appBarTheme: const AppBarTheme(
-              backgroundColor: AppColors.primaryColor,
+              backgroundColor: AppColors.darkPrimaryColor,
             ),
             snackBarTheme: SnackBarThemeData(
-              backgroundColor:
-                  AppColors.primaryColor, // Dark blue background for snackbar
+              backgroundColor: AppColors
+                  .darkPrimaryColor, // Dark blue background for snackbar
               contentTextStyle: TextStyle(
                 color: AppColors.darkTextColor,
               ), // White text for snackbar content
@@ -119,18 +122,46 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    // Wait for 3 seconds for splash effect
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final userPhone = prefs.getString('userPhone');
+
+    if (isLoggedIn && userPhone != null) {
+      // Restore user session
+      final user = await DatabaseHelper.instance.getUserByPhone(userPhone);
+      if (user != null && mounted) {
+        Provider.of<UserProvider>(context, listen: false).setUser(user);
+        Provider.of<ParkingProvider>(
+          context,
+          listen: false,
+        ).loadTickets(userPhone);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+        return;
+      }
+    }
+
+    if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginPage()),
       );
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.colorScheme.primary, // Use theme's primary color
+      backgroundColor: Colors.white, // Set background to white
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -144,8 +175,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'ParkMate',
               style: TextStyle(
-                color:
-                    theme.colorScheme.onPrimary, // Use theme's onPrimary color
+                color: AppColors.primaryColor, // Use specific app theme color
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
               ),
@@ -154,8 +184,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Digital Parking System',
               style: TextStyle(
-                color:
-                    theme.colorScheme.onPrimary, // Use theme's onPrimary color
+                color: AppColors.primaryColor, // Use specific app theme color
                 fontSize: 20,
               ),
             ),

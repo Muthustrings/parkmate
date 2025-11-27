@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:parkmate/providers/user_provider.dart';
+import 'package:parkmate/providers/parking_provider.dart';
 import 'package:parkmate/screens/signup_page.dart';
 import 'package:parkmate/screens/home_page.dart';
 import 'package:parkmate/services/database_helper.dart';
+import 'package:parkmate/screens/forgot_password_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -37,6 +40,15 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    if (phone.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid 10-digit phone number'),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -45,8 +57,19 @@ class _LoginPageState extends State<LoginPage> {
       final user = await DatabaseHelper.instance.getUser(phone, password);
       if (user != null) {
         if (mounted) {
+          // Save login state
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('isLoggedIn', true);
+          await prefs.setString('userPhone', phone);
+
           // Set user in provider
           Provider.of<UserProvider>(context, listen: false).setUser(user);
+
+          // Load user's tickets
+          Provider.of<ParkingProvider>(
+            context,
+            listen: false,
+          ).loadTickets(phone);
 
           Navigator.pushReplacement(
             context,
@@ -122,6 +145,17 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 const SizedBox(height: 40), // Add some top spacing
+                Image.asset('assets/Logo.png', height: 100),
+                const SizedBox(height: 10),
+                Text(
+                  'ParkMate',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 30),
                 Text(
                   'Welcome Back',
                   style: TextStyle(
@@ -147,6 +181,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
+                    maxLength: 10,
                     style: TextStyle(color: theme.colorScheme.onSurface),
                     decoration: InputDecoration(
                       prefixIcon: Icon(
@@ -209,14 +244,10 @@ class _LoginPageState extends State<LoginPage> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Forgot Password button pressed',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordPage(),
                         ),
                       );
                     },

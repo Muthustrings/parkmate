@@ -161,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   _buildFeatureCard(
                     context: context, // Pass context
-                    icon: Icons.report,
+                    icon: Icons.analytics,
                     label: 'Reports',
                     color:
                         theme.colorScheme.primary, // Use theme's primary color

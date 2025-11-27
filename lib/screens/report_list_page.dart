@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:parkmate/models/ticket.dart';
 import 'package:parkmate/services/database_helper.dart';
 import 'package:parkmate/services/export_service.dart';
+import 'package:parkmate/providers/user_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum ReportType { checkIn, checkOut, allTickets }
 
@@ -18,6 +21,8 @@ class ReportListPage extends StatefulWidget {
 class _ReportListPageState extends State<ReportListPage> {
   List<Ticket> _tickets = [];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  String _filterType = 'Vehicle Number';
 
   @override
   void initState() {
@@ -25,25 +30,60 @@ class _ReportListPageState extends State<ReportListPage> {
     _loadTickets();
   }
 
-  Future<void> _loadTickets() async {
-    List<Ticket> tickets = [];
-    switch (widget.reportType) {
-      case ReportType.checkIn:
-        tickets = await DatabaseHelper.instance.getAllTickets();
-        break;
-      case ReportType.checkOut:
-        tickets = await DatabaseHelper.instance.getHistoryTickets();
-        break;
-      case ReportType.allTickets:
-        tickets = await DatabaseHelper.instance.getAllTickets();
-        break;
-    }
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
-    if (mounted) {
-      setState(() {
-        _tickets = tickets;
-        _isLoading = false;
-      });
+  Future<void> _loadTickets() async {
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      var userPhone = userProvider.user?.phone;
+
+      if (userPhone == null) {
+        final prefs = await SharedPreferences.getInstance();
+        userPhone = prefs.getString('userPhone');
+      }
+
+      if (userPhone == null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
+      List<Ticket> tickets = [];
+      switch (widget.reportType) {
+        case ReportType.checkIn:
+          tickets = await DatabaseHelper.instance.getAllTickets(userPhone);
+          break;
+        case ReportType.checkOut:
+          tickets = await DatabaseHelper.instance.getHistoryTickets(userPhone);
+          break;
+        case ReportType.allTickets:
+          tickets = await DatabaseHelper.instance.getAllTickets(userPhone);
+          break;
+      }
+
+      if (mounted) {
+        setState(() {
+          _tickets = tickets;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading tickets: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
+      }
     }
   }
 
@@ -61,6 +101,19 @@ class _ReportListPageState extends State<ReportListPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // Filter tickets based on search query
+    List<Ticket> filteredTickets = _tickets.where((ticket) {
+      final query = _searchController.text.toLowerCase();
+      if (query.isEmpty) return true;
+
+      if (_filterType == 'Vehicle Number') {
+        return ticket.vehicleNumber.toLowerCase().contains(query);
+      } else {
+        return ticket.phoneNumber?.toLowerCase().contains(query) ?? false;
+      }
+    }).toList();
+
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
@@ -75,12 +128,12 @@ class _ReportListPageState extends State<ReportListPage> {
             icon: const Icon(Icons.picture_as_pdf),
             tooltip: 'Export PDF',
             onPressed: () async {
-              if (_tickets.isNotEmpty) {
+              if (filteredTickets.isNotEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Generating PDF...')),
                 );
                 final success = await ExportService.instance.exportTicketsPdf(
-                  _tickets,
+                  filteredTickets,
                   _title,
                   widget.reportType,
                 );
@@ -103,12 +156,12 @@ class _ReportListPageState extends State<ReportListPage> {
             icon: const Icon(Icons.table_chart),
             tooltip: 'Export Excel',
             onPressed: () async {
-              if (_tickets.isNotEmpty) {
+              if (filteredTickets.isNotEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Generating Excel...')),
                 );
                 final success = await ExportService.instance.exportTicketsExcel(
-                  _tickets,
+                  filteredTickets,
                   _title,
                   widget.reportType,
                 );
@@ -129,30 +182,103 @@ class _ReportListPageState extends State<ReportListPage> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _tickets.isEmpty
-          ? Center(
-              child: Text(
-                'No records found',
-                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  border: TableBorder.all(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 1,
-                    borderRadius: BorderRadius.circular(4),
+      body: Column(
+        children: [
+          // Search Bar and Filter
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: theme.colorScheme.surface,
+                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                    },
                   ),
-                  columnWidths: _getColumnWidths(),
-                  children: [_buildHeaderRow(theme), ..._buildDataRows(theme)],
                 ),
-              ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: theme.colorScheme.outline),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _filterType,
+                      dropdownColor: theme.colorScheme.surface,
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                      items: <String>['Vehicle Number', 'Phone Number'].map((
+                        String value,
+                      ) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _filterType = newValue!;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : filteredTickets.isEmpty
+                ? Center(
+                    child: Text(
+                      'No records found',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SingleChildScrollView(
+                      child: Table(
+                        defaultVerticalAlignment:
+                            TableCellVerticalAlignment.middle,
+                        border: TableBorder.all(
+                          color: theme.colorScheme.outlineVariant,
+                          width: 1,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        columnWidths: _getColumnWidths(),
+                        children: [
+                          _buildHeaderRow(theme),
+                          ..._buildDataRows(theme, filteredTickets),
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -204,10 +330,10 @@ class _ReportListPageState extends State<ReportListPage> {
     );
   }
 
-  List<TableRow> _buildDataRows(ThemeData theme) {
+  List<TableRow> _buildDataRows(ThemeData theme, List<Ticket> tickets) {
     final dateFormat = DateFormat('dd/MM/yy h:mm a');
-    return List<TableRow>.generate(_tickets.length, (index) {
-      final ticket = _tickets[index];
+    return List<TableRow>.generate(tickets.length, (index) {
+      final ticket = tickets[index];
       final List<Widget> cells = [
         _buildDataCell('${index + 1}'),
         _buildDataCell(ticket.vehicleNumber, isBold: true),

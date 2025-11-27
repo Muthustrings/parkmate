@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:parkmate/screens/login_page.dart';
 import 'package:parkmate/screens/edit_profile_page.dart';
@@ -189,20 +190,32 @@ class ProfilePage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onTap: () {
-                  Provider.of<UserProvider>(context, listen: false).clearUser();
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                    (Route<dynamic> route) => false,
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Logged out successfully!',
-                        style: TextStyle(color: theme.colorScheme.onSurface),
+                onTap: () async {
+                  // Clear SharedPreferences
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.remove('isLoggedIn');
+                  await prefs.remove('userPhone');
+
+                  if (context.mounted) {
+                    Provider.of<UserProvider>(
+                      context,
+                      listen: false,
+                    ).clearUser();
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
                       ),
-                    ),
-                  );
+                      (Route<dynamic> route) => false,
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Logged out successfully!',
+                          style: TextStyle(color: theme.colorScheme.onSurface),
+                        ),
+                      ),
+                    );
+                  }
                 },
               ),
             ],

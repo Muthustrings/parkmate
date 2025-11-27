@@ -57,36 +57,6 @@ class ReportsPage extends StatelessWidget {
                 children: [
                   _buildReportCard(
                     context,
-                    'Check-In',
-                    'View all active check-ins',
-                    Icons.login,
-                    [Colors.blueAccent, Colors.lightBlueAccent],
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ReportListPage(
-                          reportType: ReportType.checkIn,
-                        ),
-                      ),
-                    ),
-                  ),
-                  _buildReportCard(
-                    context,
-                    'Check-Out',
-                    'View completed sessions',
-                    Icons.logout,
-                    [Colors.orangeAccent, Colors.deepOrangeAccent],
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ReportListPage(
-                          reportType: ReportType.checkOut,
-                        ),
-                      ),
-                    ),
-                  ),
-                  _buildReportCard(
-                    context,
                     'All Tickets',
                     'Comprehensive ticket history',
                     Icons.receipt_long,

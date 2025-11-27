@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import 'package:parkmate/services/database_helper.dart';
-import 'package:intl/intl.dart';
-
 import 'package:parkmate/services/export_service.dart';
+import 'package:parkmate/providers/user_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class IncomeReportPage extends StatefulWidget {
   const IncomeReportPage({super.key});
@@ -26,44 +26,75 @@ class _IncomeReportPageState extends State<IncomeReportPage> {
   }
 
   Future<void> _calculateIncome() async {
-    final tickets = await DatabaseHelper.instance.getHistoryTickets();
-    final now = DateTime.now();
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      var userPhone = userProvider.user?.phone;
 
-    double total = 0.0;
-    double today = 0.0;
-    double week = 0.0;
-    double month = 0.0;
+      if (userPhone == null) {
+        final prefs = await SharedPreferences.getInstance();
+        userPhone = prefs.getString('userPhone');
+      }
 
-    for (var ticket in tickets) {
-      if (ticket.amount != null && ticket.checkOutTime != null) {
-        double amount = ticket.amount!;
-        total += amount;
-
-        if (ticket.checkOutTime!.year == now.year &&
-            ticket.checkOutTime!.month == now.month &&
-            ticket.checkOutTime!.day == now.day) {
-          today += amount;
+      if (userPhone == null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
         }
+        return;
+      }
 
-        final difference = now.difference(ticket.checkOutTime!);
-        if (difference.inDays <= 7) {
-          week += amount;
-        }
+      final tickets = await DatabaseHelper.instance.getHistoryTickets(
+        userPhone,
+      );
+      final now = DateTime.now();
 
-        if (difference.inDays <= 30) {
-          month += amount;
+      double total = 0.0;
+      double today = 0.0;
+      double week = 0.0;
+      double month = 0.0;
+
+      for (var ticket in tickets) {
+        if (ticket.amount != null && ticket.checkOutTime != null) {
+          double amount = ticket.amount!;
+          total += amount;
+
+          if (ticket.checkOutTime!.year == now.year &&
+              ticket.checkOutTime!.month == now.month &&
+              ticket.checkOutTime!.day == now.day) {
+            today += amount;
+          }
+
+          final difference = now.difference(ticket.checkOutTime!);
+          if (difference.inDays <= 7) {
+            week += amount;
+          }
+
+          if (difference.inDays <= 30) {
+            month += amount;
+          }
         }
       }
-    }
 
-    if (mounted) {
-      setState(() {
-        _totalIncome = total;
-        _todayIncome = today;
-        _weekIncome = week;
-        _monthIncome = month;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _totalIncome = total;
+          _todayIncome = today;
+          _weekIncome = week;
+          _monthIncome = month;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error calculating income: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
+      }
     }
   }
 

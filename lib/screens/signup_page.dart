@@ -17,6 +17,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _agreedToTerms = false;
 
   @override
   void dispose() {
@@ -33,24 +34,38 @@ class _SignUpPageState extends State<SignUpPage> {
     final confirmPassword = _confirmPasswordController.text.trim();
     final name = _nameController.text.trim();
 
-    if (phone.isEmpty || password.isEmpty || confirmPassword.isEmpty || name.isEmpty) {
+    if (phone.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
       return;
     }
 
-    if (password != confirmPassword) {
+    if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
+        const SnackBar(
+          content: Text('Please agree to the Terms & Privacy policy'),
+        ),
       );
       return;
     }
 
-    // Basic phone validation (can be improved)
-    if (!RegExp(r'^[0-9]+$').hasMatch(phone) || phone.length < 10) {
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+      return;
+    }
+
+    // Phone validation: must be exactly 10 digits
+    if (phone.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid phone number')),
+        const SnackBar(
+          content: Text('Please enter a valid 10-digit phone number'),
+        ),
       );
       return;
     }
@@ -64,7 +79,9 @@ class _SignUpPageState extends State<SignUpPage> {
       if (exists) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('User with this phone number already exists')),
+            const SnackBar(
+              content: Text('User with this phone number already exists'),
+            ),
           );
         }
       } else {
@@ -72,16 +89,18 @@ class _SignUpPageState extends State<SignUpPage> {
         await DatabaseHelper.instance.createUser(user);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account created successfully! Please login.')),
+            const SnackBar(
+              content: Text('Account created successfully! Please login.'),
+            ),
           );
           Navigator.pop(context);
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) {
@@ -103,7 +122,24 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 80),
+              const SizedBox(height: 40),
+              Center(
+                child: Column(
+                  children: [
+                    Image.asset('assets/Logo.png', height: 100),
+                    const SizedBox(height: 10),
+                    Text(
+                      'ParkMate',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
               Text(
                 'Create Account',
                 style: TextStyle(
@@ -126,6 +162,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 'Phone Number',
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
+                maxLength: 10,
               ),
               const SizedBox(height: 20),
               _buildTextField(
@@ -160,18 +197,24 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _nameController,
               ),
               const SizedBox(height: 20),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Checkbox(
-                    value: false, // TODO: Implement state management for checkbox
+                    value: _agreedToTerms,
                     onChanged: (bool? value) {
-                      // TODO: Implement state management for checkbox
+                      setState(() {
+                        _agreedToTerms = value ?? false;
+                      });
                     },
                     activeColor: theme.colorScheme.primary,
                   ),
                   Text(
                     'I agree to ParkMate ',
-                    style: TextStyle(fontSize: 14, color: theme.colorScheme.onBackground),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: theme.colorScheme.onBackground,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -201,10 +244,15 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   child: _isLoading
-                      ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
+                      ? CircularProgressIndicator(
+                          color: theme.colorScheme.onPrimary,
+                        )
                       : Text(
                           'Create Account',
-                          style: TextStyle(fontSize: 18, color: theme.colorScheme.onPrimary),
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: theme.colorScheme.onPrimary,
+                          ),
                         ),
                 ),
               ),
@@ -212,7 +260,10 @@ class _SignUpPageState extends State<SignUpPage> {
               Center(
                 child: Text(
                   'OR',
-                  style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -240,7 +291,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       const SizedBox(width: 10),
                       Text(
                         'Sign in with Google',
-                        style: TextStyle(fontSize: 18, color: theme.colorScheme.onBackground),
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: theme.colorScheme.onBackground,
+                        ),
                       ),
                     ],
                   ),
@@ -252,7 +306,10 @@ class _SignUpPageState extends State<SignUpPage> {
                 children: [
                   Text(
                     'Already have an account? ',
-                    style: TextStyle(fontSize: 16, color: theme.colorScheme.onBackground),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: theme.colorScheme.onBackground,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -283,6 +340,7 @@ class _SignUpPageState extends State<SignUpPage> {
     TextEditingController? controller,
     TextInputType? keyboardType,
     bool isPassword = false,
+    int? maxLength,
     VoidCallback? onVisibilityToggle,
   }) {
     final theme = Theme.of(context);
@@ -290,6 +348,7 @@ class _SignUpPageState extends State<SignUpPage> {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      maxLength: maxLength,
       style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hintText,
@@ -300,7 +359,10 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         filled: true,
         fillColor: theme.colorScheme.surfaceVariant,
-        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 15,
+          horizontal: 20,
+        ),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:parkmate/providers/parking_provider.dart';
 import 'package:parkmate/models/ticket.dart';
+import 'package:parkmate/providers/user_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CheckInPage extends StatefulWidget {
@@ -154,6 +155,49 @@ class _CheckInPageState extends State<CheckInPage> {
                 ],
               ),
               const SizedBox(height: 20),
+              // Phone Number Input
+              TextFormField(
+                controller: _phoneController,
+                style: TextStyle(color: theme.colorScheme.onSurface),
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  labelStyle: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: theme.colorScheme.outline),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.phone,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceVariant,
+                ),
+                keyboardType: TextInputType.phone,
+                onChanged: (value) {
+                  if (value.length == 10) {
+                    _checkExistingCustomer(value);
+                  }
+                },
+                validator: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    if (value.length != 10) {
+                      return 'Phone number must be 10 digits';
+                    }
+                    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                      return 'Phone number must contain only digits';
+                    }
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
               // Vehicle Number Input
               TextFormField(
                 controller: _vehicleNumberController,
@@ -181,44 +225,6 @@ class _CheckInPageState extends State<CheckInPage> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter vehicle number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              // Phone Number Input
-              TextFormField(
-                controller: _phoneController,
-                style: TextStyle(color: theme.colorScheme.onSurface),
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  labelStyle: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: theme.colorScheme.outline),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: theme.colorScheme.primary),
-                  ),
-                  prefixIcon: Icon(
-                    Icons.phone,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  filled: true,
-                  fillColor: theme.colorScheme.surfaceVariant,
-                ),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value != null && value.isNotEmpty) {
-                    if (value.length != 10) {
-                      return 'Phone number must be 10 digits';
-                    }
-                    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-                      return 'Phone number must contain only digits';
-                    }
                   }
                   return null;
                 },
@@ -361,6 +367,12 @@ class _CheckInPageState extends State<CheckInPage> {
                         _selectedTime.minute,
                       );
 
+                      final userProvider = Provider.of<UserProvider>(
+                        context,
+                        listen: false,
+                      );
+                      final createdBy = userProvider.user?.phone;
+
                       final ticket = Ticket(
                         id: DateTime.now().millisecondsSinceEpoch.toString(),
                         vehicleNumber: _vehicleNumberController.text,
@@ -372,6 +384,7 @@ class _CheckInPageState extends State<CheckInPage> {
                             ? _slotController.text
                             : null,
                         checkInTime: checkInDateTime,
+                        createdBy: createdBy,
                       );
 
                       Provider.of<ParkingProvider>(
@@ -421,6 +434,64 @@ class _CheckInPageState extends State<CheckInPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _checkExistingCustomer(String phoneNumber) async {
+    final parkingProvider = Provider.of<ParkingProvider>(
+      context,
+      listen: false,
+    );
+    // Combine active and history tickets to find all past records
+    final allTickets = [
+      ...parkingProvider.activeTickets,
+      ...parkingProvider.historyTickets,
+    ];
+
+    // Find unique vehicle numbers associated with this phone number
+    final userVehicles = allTickets
+        .where((ticket) => ticket.phoneNumber == phoneNumber)
+        .map((ticket) => ticket.vehicleNumber)
+        .toSet()
+        .toList();
+
+    if (userVehicles.isNotEmpty) {
+      if (userVehicles.length == 1) {
+        // Only one vehicle found, auto-fill
+        setState(() {
+          _vehicleNumberController.text = userVehicles.first;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vehicle number auto-filled!'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      } else {
+        // Multiple vehicles found, show dialog
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return SimpleDialog(
+              title: const Text('Select Vehicle'),
+              children: userVehicles.map((vehicle) {
+                return SimpleDialogOption(
+                  onPressed: () {
+                    setState(() {
+                      _vehicleNumberController.text = vehicle;
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(vehicle, style: const TextStyle(fontSize: 16)),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        );
+      }
+    }
   }
 
   Future<void> _launchWhatsApp(Ticket ticket) async {

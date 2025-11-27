@@ -1,4 +1,4 @@
-package com.example.parkmate
+package com.parkmate
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -7,6 +7,7 @@ class Ticket {
   final DateTime checkInTime;
   DateTime? checkOutTime;
   final double? amount;
+  final String? createdBy;
 
   Ticket({
     required this.id,
@@ -17,6 +18,7 @@ class Ticket {
     required this.checkInTime,
     this.checkOutTime,
     this.amount,
+    this.createdBy,
   });
   Map<String, dynamic> toMap() {
     return {
@@ -28,6 +30,7 @@ class Ticket {
       'checkInTime': checkInTime.toIso8601String(),
       'checkOutTime': checkOutTime?.toIso8601String(),
       'amount': amount,
+      'createdBy': createdBy,
     };
   }
 
@@ -43,6 +46,7 @@ class Ticket {
           ? DateTime.parse(map['checkOutTime'])
           : null,
       amount: map['amount'] != null ? (map['amount'] as num).toDouble() : null,
+      createdBy: map['createdBy'],
     );
   }
 }
