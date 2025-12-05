@@ -51,6 +51,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           phone: currentUser.phone,
           password: currentUser.password,
           name: name,
+          email: currentUser.email,
         );
 
         await userProvider.updateUser(updatedUser);
@@ -81,7 +82,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Edit Profile',
@@ -105,7 +106,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 filled: true,
-                fillColor: theme.colorScheme.surfaceVariant,
+                fillColor: theme.colorScheme.surfaceContainerHighest,
               ),
               style: TextStyle(color: theme.colorScheme.onSurface),
             ),

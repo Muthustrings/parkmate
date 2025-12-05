@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:excel/excel.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -87,72 +87,60 @@ class ExportService {
     }
   }
 
-  Future<bool> exportTicketsExcel(
+  Future<bool> exportTicketsCsv(
     List<Ticket> tickets,
     String title,
     ReportType reportType,
   ) async {
     try {
-      var excel = Excel.createExcel();
-      Sheet sheetObject = excel['Sheet1'];
+      List<List<dynamic>> rows = [];
 
       // Header
-      List<CellValue> headers = [
-        TextCellValue('Vehicle Number'),
-        TextCellValue('Vehicle Type'),
-        TextCellValue('Phone Number'),
-        TextCellValue('Slot Number'),
-        TextCellValue('Check-In Time'),
+      List<String> headers = [
+        'Vehicle Number',
+        'Vehicle Type',
+        'Phone Number',
+        'Slot Number',
+        'Check-In Time',
       ];
 
       if (reportType != ReportType.checkIn) {
-        headers.addAll([
-          TextCellValue('Check-Out Time'),
-          TextCellValue('Amount'),
-        ]);
+        headers.addAll(['Check-Out Time', 'Amount']);
       }
 
-      sheetObject.appendRow(headers);
+      rows.add(headers);
 
       // Data
       for (var ticket in tickets) {
-        List<CellValue> row = [
-          TextCellValue(ticket.vehicleNumber),
-          TextCellValue(ticket.vehicleType),
-          TextCellValue(ticket.phoneNumber ?? ''),
-          TextCellValue(ticket.slotNumber ?? ''),
-          TextCellValue(_dateFormat.format(ticket.checkInTime)),
+        List<dynamic> row = [
+          ticket.vehicleNumber,
+          ticket.vehicleType,
+          ticket.phoneNumber ?? '',
+          ticket.slotNumber ?? '',
+          _dateFormat.format(ticket.checkInTime),
         ];
 
         if (reportType != ReportType.checkIn) {
           row.addAll([
-            TextCellValue(
-              ticket.checkOutTime != null
-                  ? _dateFormat.format(ticket.checkOutTime!)
-                  : 'Pending',
-            ),
-            TextCellValue(
-              ticket.amount != null ? ticket.amount!.toStringAsFixed(2) : '',
-            ),
+            ticket.checkOutTime != null
+                ? _dateFormat.format(ticket.checkOutTime!)
+                : 'Pending',
+            ticket.amount != null ? ticket.amount!.toStringAsFixed(2) : '',
           ]);
         }
 
-        sheetObject.appendRow(row);
+        rows.add(row);
       }
 
-      final fileBytes = excel.save();
-      if (fileBytes != null) {
-        final directory = await getTemporaryDirectory();
-        final file = File(
-          '${directory.path}/${title.replaceAll(' ', '_')}.xlsx',
-        );
-        await file.writeAsBytes(fileBytes);
-        await Share.shareXFiles([XFile(file.path)], text: 'Here is the $title');
-        return true;
-      }
-      return false;
+      String csv = const ListToCsvConverter().convert(rows);
+
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/${title.replaceAll(' ', '_')}.csv');
+      await file.writeAsString(csv);
+      await Share.shareXFiles([XFile(file.path)], text: 'Here is the $title');
+      return true;
     } catch (e) {
-      debugPrint('Error exporting Excel: $e');
+      debugPrint('Error exporting CSV: $e');
       return false;
     }
   }
@@ -242,36 +230,27 @@ class ExportService {
     }
   }
 
-  Future<bool> exportIncomeExcel(Map<String, double> data) async {
+  Future<bool> exportIncomeCsv(Map<String, double> data) async {
     try {
-      var excel = Excel.createExcel();
-      Sheet sheetObject = excel['Sheet1'];
+      List<List<dynamic>> rows = [];
 
-      sheetObject.appendRow([
-        TextCellValue('Report Type'),
-        TextCellValue('Amount'),
-      ]);
+      rows.add(['Report Type', 'Amount']);
 
       for (var entry in data.entries) {
-        sheetObject.appendRow([
-          TextCellValue(entry.key),
-          DoubleCellValue(entry.value),
-        ]);
+        rows.add([entry.key, entry.value]);
       }
 
-      final fileBytes = excel.save();
-      if (fileBytes != null) {
-        final directory = await getTemporaryDirectory();
-        final file = File('${directory.path}/Income_Report.xlsx');
-        await file.writeAsBytes(fileBytes);
-        await Share.shareXFiles([
-          XFile(file.path),
-        ], text: 'Here is the Income Report');
-        return true;
-      }
-      return false;
+      String csv = const ListToCsvConverter().convert(rows);
+
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/Income_Report.csv');
+      await file.writeAsString(csv);
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Here is the Income Report');
+      return true;
     } catch (e) {
-      debugPrint('Error exporting Income Excel: $e');
+      debugPrint('Error exporting Income CSV: $e');
       return false;
     }
   }

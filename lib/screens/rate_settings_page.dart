@@ -111,7 +111,7 @@ class _RateSettingsPageState extends State<RateSettingsPage> {
         const SizedBox(width: 16),
         Expanded(
           child: DropdownButtonFormField<double>(
-            value: duration,
+            initialValue: duration,
             decoration: const InputDecoration(
               labelText: 'Per Duration',
               border: OutlineInputBorder(),

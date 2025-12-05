@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 6,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -32,8 +32,9 @@ class DatabaseHelper {
     const userTable = '''
     CREATE TABLE users (
       phone TEXT PRIMARY KEY,
-      password TEXT NOT NULL,
+      password TEXT, 
       name TEXT NOT NULL,
+      email TEXT,
       securityQuestion TEXT,
       securityAnswer TEXT
     )
@@ -74,6 +75,46 @@ class DatabaseHelper {
         await db.execute('ALTER TABLE tickets ADD COLUMN createdBy TEXT');
       }
     }
+
+    if (oldVersion < 5) {
+      // Add email column to users table
+      final columns = await db.rawQuery('PRAGMA table_info(users)');
+      final hasEmail = columns.any((c) => c['name'] == 'email');
+      if (!hasEmail) {
+        await db.execute('ALTER TABLE users ADD COLUMN email TEXT');
+      }
+    }
+
+    if (oldVersion < 6) {
+      // Make password nullable by recreating the table
+      await db.transaction((txn) async {
+        // 1. Create new table with nullable password
+        await txn.execute('''
+          CREATE TABLE users_new (
+            phone TEXT PRIMARY KEY,
+            password TEXT,
+            name TEXT NOT NULL,
+            email TEXT,
+            securityQuestion TEXT,
+            securityAnswer TEXT
+          )
+        ''');
+
+        // 2. Copy data from old table to new table
+        // We only copy columns that existed. If email was just added in v5, it should be there.
+        // We assume upgrading from v5. If skipping versions, sequential upgrades run.
+        await txn.execute('''
+          INSERT INTO users_new (phone, password, name, email, securityQuestion, securityAnswer)
+          SELECT phone, password, name, email, securityQuestion, securityAnswer FROM users
+        ''');
+
+        // 3. Drop old table
+        await txn.execute('DROP TABLE users');
+
+        // 4. Rename new table to old table name
+        await txn.execute('ALTER TABLE users_new RENAME TO users');
+      });
+    }
   }
 
   // User Methods
@@ -92,7 +133,7 @@ class DatabaseHelper {
     print('Checking user: $phone'); // Debug print
     final maps = await db.query(
       'users',
-      columns: ['phone', 'password', 'name'],
+      columns: ['phone', 'password', 'name', 'email'],
       where: 'phone = ? AND password = ?',
       whereArgs: [phone, password],
     );
@@ -110,7 +151,7 @@ class DatabaseHelper {
     final db = await instance.database;
     final maps = await db.query(
       'users',
-      columns: ['phone', 'password', 'name'],
+      columns: ['phone', 'password', 'name', 'email'],
       where: 'phone = ?',
       whereArgs: [phone],
     );
@@ -200,7 +241,7 @@ class DatabaseHelper {
     final db = await instance.database;
     final maps = await db.query(
       'tickets',
-      where: 'checkOutTime IS NULL AND createdBy = ?',
+      where: 'checkOutTime IS NULL AND (createdBy = ? OR createdBy IS NULL)',
       whereArgs: [userId],
     );
 
@@ -213,7 +254,8 @@ class DatabaseHelper {
     final db = await instance.database;
     final maps = await db.query(
       'tickets',
-      where: 'checkOutTime IS NOT NULL AND createdBy = ?',
+      where:
+          'checkOutTime IS NOT NULL AND (createdBy = ? OR createdBy IS NULL)',
       orderBy: 'checkOutTime DESC',
       whereArgs: [userId],
     );
@@ -227,7 +269,7 @@ class DatabaseHelper {
     final db = await instance.database;
     final maps = await db.query(
       'tickets',
-      where: 'createdBy = ?',
+      where: 'createdBy = ? OR createdBy IS NULL',
       orderBy: 'checkInTime DESC',
       whereArgs: [userId],
     );

@@ -139,13 +139,13 @@ class _IncomeReportPageState extends State<IncomeReportPage> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.table_chart),
-            tooltip: 'Export Excel',
+            icon: const Icon(Icons.description),
+            tooltip: 'Export CSV',
             onPressed: () async {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Generating Excel...')),
+                const SnackBar(content: Text('Generating CSV...')),
               );
-              final success = await ExportService.instance.exportIncomeExcel({
+              final success = await ExportService.instance.exportIncomeCsv({
                 'Total Income': _totalIncome,
                 "Today's Income": _todayIncome,
                 'This Week': _weekIncome,
@@ -156,8 +156,8 @@ class _IncomeReportPageState extends State<IncomeReportPage> {
                   SnackBar(
                     content: Text(
                       success
-                          ? 'Excel exported successfully'
-                          : 'Failed to export Excel',
+                          ? 'CSV exported successfully'
+                          : 'Failed to export CSV',
                     ),
                     backgroundColor: success ? Colors.green : Colors.red,
                   ),

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:parkmate/providers/theme_provider.dart'; // Assuming this will be created
 
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

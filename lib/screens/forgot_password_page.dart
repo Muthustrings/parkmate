@@ -231,6 +231,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   'New Password',
                   controller: _newPasswordController,
                   obscureText: _obscurePassword,
+                  keyboardType: TextInputType.visiblePassword,
                   isPassword: true,
                   onVisibilityToggle: () {
                     setState(() => _obscurePassword = !_obscurePassword);
@@ -242,6 +243,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   'Confirm Password',
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
+                  keyboardType: TextInputType.visiblePassword,
                   isPassword: true,
                   onVisibilityToggle: () {
                     setState(

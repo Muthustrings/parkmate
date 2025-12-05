@@ -45,22 +45,33 @@ class ProfilePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Text(
-                        user?.name ?? 'User Name',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onBackground,
+                      if (user?.email != null && user!.email!.isNotEmpty) ...[
+                        Text(
+                          user!.email!,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        user?.phone ?? 'Phone Number',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: theme.colorScheme.onSurfaceVariant,
+                      ] else ...[
+                        Text(
+                          user?.name ?? 'User Name',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onBackground,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 10),
+                        Text(
+                          user?.phone ?? 'Phone Number',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ],
                   );
                 },

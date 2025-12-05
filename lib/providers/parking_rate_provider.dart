@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ParkingRateProvider with ChangeNotifier {
-  double _bikeRate = 20.0;
+  double _bikeRate = 4.0;
   double _bikeDuration = 1.0; // In hours
 
-  double _carRate = 40.0;
+  double _carRate = 15.0;
   double _carDuration = 1.0; // In hours
 
   double get bikeRate => _bikeRate;
@@ -20,10 +20,10 @@ class ParkingRateProvider with ChangeNotifier {
 
   Future<void> _loadRates() async {
     final prefs = await SharedPreferences.getInstance();
-    _bikeRate = prefs.getDouble('bikeRate') ?? 20.0;
+    _bikeRate = prefs.getDouble('bikeRate') ?? 4.0;
     _bikeDuration = prefs.getDouble('bikeDuration') ?? 1.0;
 
-    _carRate = prefs.getDouble('carRate') ?? 40.0;
+    _carRate = prefs.getDouble('carRate') ?? 15.0;
     _carDuration = prefs.getDouble('carDuration') ?? 1.0;
     notifyListeners();
   }

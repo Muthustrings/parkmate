@@ -174,6 +174,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      keyboardType: TextInputType.visiblePassword,
       style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,

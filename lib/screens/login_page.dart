@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+
 import 'package:provider/provider.dart';
 import 'package:parkmate/providers/user_provider.dart';
 import 'package:parkmate/providers/parking_provider.dart';
@@ -7,6 +7,7 @@ import 'package:parkmate/screens/signup_page.dart';
 import 'package:parkmate/screens/home_page.dart';
 import 'package:parkmate/services/database_helper.dart';
 import 'package:parkmate/screens/forgot_password_page.dart';
+import 'package:parkmate/models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -99,19 +100,80 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signIn();
+      // Simulate network delay for "Google Auth"
+      await Future.delayed(const Duration(seconds: 1)); // Mocking API call
+
+      // Use a fixed dummy account for Google Sign-In simulation
+      // identifying it by a specific phone number (as our DB requires a phone PK)
+      const googleUserPhone = "9999999999";
+      const googleUserName =
+          "Muthu Kannappan"; // Updated name to be more realistic
+      const googleUserEmail = "muthukannappan121998@gmail.com";
+
+      // Check if this pseudo-Google user already exists
+      User? user = await DatabaseHelper.instance.getUserByPhone(
+        googleUserPhone,
+      );
+
+      if (user == null) {
+        // First time Google Sign-In: Create the account
+        user = User(
+          phone: googleUserPhone,
+          name: googleUserName,
+          email: googleUserEmail,
+        );
+        await DatabaseHelper.instance.createUser(user);
+      } else {
+        // Validation: Verify/Update email if it doesn't match the new requirement
+        // This ensures existing test users get the updated specific email
+        if (user.email != googleUserEmail) {
+          user = User(
+            phone: user.phone,
+            name: user.name,
+            password: user.password,
+            email: googleUserEmail,
+          );
+          await DatabaseHelper.instance.updateUser(user);
+        }
+      }
+
       if (mounted) {
+        // PROCEED WITH LOGIN (Same logic as standard login)
+
+        // 1. Save Session
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('userPhone', user.phone);
+
+        // 2. Update Providers
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.setUser(user);
+
+        final parkingProvider = Provider.of<ParkingProvider>(
+          context,
+          listen: false,
+        );
+        await parkingProvider.loadTickets(user.phone);
+
+        // 3. Feedback
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Signed in with Google',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              'Signed in with Google (Simulated)',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSecondary,
+              ),
             ),
+            backgroundColor: Theme.of(context).colorScheme.secondary,
           ),
         );
-        // Navigate to home page after successful google sign in
+
+        // 4. Navigate
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -122,11 +184,18 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Error signing in with Google: $error',
+              'Error signing in: $error',
               style: TextStyle(color: Theme.of(context).colorScheme.onError),
             ),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }

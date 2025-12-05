@@ -52,7 +52,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     controller: _searchController,
                     style: TextStyle(color: theme.colorScheme.onSurface),
                     decoration: InputDecoration(
-                      hintText: 'Search...',
+                      hintText: 'Search by $_filterType...',
                       hintStyle: TextStyle(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -72,33 +72,28 @@ class _HistoryPageState extends State<HistoryPage> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: theme.colorScheme.outline),
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.filter_list,
+                    color: theme.colorScheme.primary,
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _filterType,
-                      dropdownColor: theme.colorScheme.surface,
-                      style: TextStyle(color: theme.colorScheme.onSurface),
-                      items: <String>['Vehicle Number', 'Phone Number'].map((
-                        String value,
-                      ) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _filterType = newValue!;
-                        });
-                      },
-                    ),
-                  ),
+                  tooltip: 'Filter by',
+                  onSelected: (String newValue) {
+                    setState(() {
+                      _filterType = newValue;
+                    });
+                  },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'Vehicle Number',
+                          child: Text('Vehicle Number'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'Phone Number',
+                          child: Text('Phone Number'),
+                        ),
+                      ],
                 ),
               ],
             ),

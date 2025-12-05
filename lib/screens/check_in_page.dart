@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 // Removed unused import: import 'package:parkmate/utils/color_page.dart';
 
@@ -5,7 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:parkmate/providers/parking_provider.dart';
 import 'package:parkmate/models/ticket.dart';
 import 'package:parkmate/providers/user_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 class CheckInPage extends StatefulWidget {
   const CheckInPage({super.key});
@@ -359,6 +362,33 @@ class _CheckInPageState extends State<CheckInPage> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
+                      final parkingProvider = Provider.of<ParkingProvider>(
+                        context,
+                        listen: false,
+                      );
+
+                      // Check if vehicle is already checked in
+                      final isAlreadyCheckedIn = parkingProvider.activeTickets
+                          .any(
+                            (ticket) =>
+                                ticket.vehicleNumber.toLowerCase() ==
+                                _vehicleNumberController.text.toLowerCase(),
+                          );
+
+                      if (isAlreadyCheckedIn) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Vehicle is already checked in!',
+                              style: TextStyle(
+                                color: theme.colorScheme.onError,
+                              ),
+                            ),
+                            backgroundColor: theme.colorScheme.error,
+                          ),
+                        );
+                        return;
+                      }
                       final DateTime checkInDateTime = DateTime(
                         _selectedDate.year,
                         _selectedDate.month,
@@ -387,10 +417,7 @@ class _CheckInPageState extends State<CheckInPage> {
                         createdBy: createdBy,
                       );
 
-                      Provider.of<ParkingProvider>(
-                        context,
-                        listen: false,
-                      ).addTicket(ticket);
+                      parkingProvider.addTicket(ticket);
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -407,7 +434,7 @@ class _CheckInPageState extends State<CheckInPage> {
 
                       if (ticket.phoneNumber != null &&
                           ticket.phoneNumber!.isNotEmpty) {
-                        _launchWhatsApp(ticket);
+                        _shareTicketWithQr(ticket);
                       }
 
                       Navigator.pop(context);
@@ -494,24 +521,53 @@ class _CheckInPageState extends State<CheckInPage> {
     }
   }
 
-  Future<void> _launchWhatsApp(Ticket ticket) async {
-    final message =
-        "ParkMate Ticket\n"
-        "Vehicle: ${ticket.vehicleNumber}\n"
-        "Type: ${ticket.vehicleType}\n"
-        "Slot: ${ticket.slotNumber ?? 'N/A'}\n"
-        "Check-In: ${ticket.checkInTime.toString()}";
+  Future<void> _shareTicketWithQr(Ticket ticket) async {
+    if (ticket.phoneNumber == null || ticket.phoneNumber!.isEmpty) return;
 
-    final url = Uri.parse(
-      "https://wa.me/${ticket.phoneNumber}?text=${Uri.encodeComponent(message)}",
-    );
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
+    String phone = ticket.phoneNumber!;
+    // Add default country code (91 for India) if missing
+    if (!phone.startsWith('+') && phone.length == 10) {
+      phone = '91$phone';
+    }
+    // Remove '+' for WhatsApp URL scheme
+    phone = phone.replaceAll('+', '');
+
+    final formattedDate = DateFormat('dd-MM-yyyy').format(ticket.checkInTime);
+    final formattedTime = DateFormat('hh:mm a').format(ticket.checkInTime);
+
+    // Generate public QR Code URL
+    final qrUrl =
+        "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${Uri.encodeComponent(ticket.id)}";
+
+    final message =
+        "🚗 *ParkMate Ticket* 🚗\n\n"
+        "🆔 *Ticket ID:* ${ticket.id}\n"
+        "🔢 *Vehicle:* ${ticket.vehicleNumber}\n"
+        "🏍️ *Type:* ${ticket.vehicleType}\n"
+        "🅿️ *Slot:* ${ticket.slotNumber ?? 'N/A'}\n"
+        "📅 *Date:* $formattedDate\n"
+        "🕒 *Time:* $formattedTime\n\n"
+        "👇 *Tap the link below to view your QR Code for checkout:* 👇\n"
+        "$qrUrl\n\n"
+        "Thank you for parking with us!";
+
+    try {
+      final whatsappUrl = Uri.parse(
+        "whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}",
+      );
+
+      if (await canLaunchUrl(whatsappUrl)) {
+        await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback to standard share if WhatsApp is not reachable via URL scheme
+        await Share.share(message, subject: 'ParkMate Ticket');
+      }
+    } catch (e) {
+      debugPrint("Error sharing ticket: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not launch WhatsApp')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error sharing ticket: $e')));
       }
     }
   }
